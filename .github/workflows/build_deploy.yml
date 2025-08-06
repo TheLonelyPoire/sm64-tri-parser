@@ -43,6 +43,13 @@ jobs:
       - name: Copy data files
         run: |
           cp -r data build/
+
+      - name: Fix relative paths for GitHub Pages
+        run: |
+          # Fix the paths in level-loader.js more precisely
+          sed -i "s|'../data/|'./data/|g" build/js/level-loader.js
+          # Also handle any other JavaScript files that might have similar paths
+          find build -name "*.js" -exec sed -i "s|'../data/|'./data/|g" {} \;
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
