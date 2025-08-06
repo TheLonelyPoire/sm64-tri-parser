@@ -44,13 +44,6 @@ jobs:
         run: |
           cp -r data build/
           
-      - name: Fix relative paths for GitHub Pages
-        run: |
-          # Update paths in JavaScript files to work with GitHub Pages subdirectory
-          sed -i "s|'../data/|'./data/|g" build/js/level-loader.js
-          # Update any other relative paths that might break
-          find build -name "*.js" -exec sed -i "s|../data/|./data/|g" {} \;
-          
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
