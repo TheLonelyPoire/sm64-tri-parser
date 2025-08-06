@@ -1,0 +1,498 @@
+# SM64 Levels Configuration
+# Lists all available levels, their display names, and collision file locations
+
+levels:
+  # Main Course Levels
+  bob:
+    name: "Bob-omb Battlefield"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "chain_chomp_gate"
+        name: "Chain Chomp Gate"
+        collision_file: "chain_chomp_gate/collision.inc.c"
+
+  wf:
+    name: "Whomp's Fortress"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "small_bomp"
+        name: "Small Bomp"
+        collision_file: "small_bomp/collision.inc.c"
+      - id: "large_bomp"
+        name: "Large Bomp"
+        collision_file: "large_bomp/collision.inc.c"
+      - id: "sliding_platform"
+        name: "Sliding Platform"
+        collision_file: "sliding_platform/collision.inc.c"
+      - id: "rotating_platform"
+        name: "Rotating Platform"
+        collision_file: "rotating_platform/collision.inc.c"
+
+  jrb:
+    name: "Jolly Roger Bay"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Sunken Ship"
+        collision_file: "areas/2/collision.inc.c"
+    objects:
+      - id: "floating_platform"
+        name: "Floating Platform"
+        collision_file: "floating_platform/collision.inc.c"
+      - id: "floating_box"
+        name: "Floating Box"
+        collision_file: "floating_box/collision.inc.c"
+
+  ccm:
+    name: "Cool, Cool Mountain"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Slide"
+        collision_file: "areas/2/collision.inc.c"
+    objects:
+      - id: "ropeway_lift"
+        name: "Ropeway Lift"
+        collision_file: "ropeway_lift/collision.inc.c"
+
+  bbh:
+    name: "Big Boo's Haunt"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "staircase_step"
+        name: "Staircase Step"
+        collision_file: "staircase_step/collision.inc.c"
+      - id: "tilting_trap_platform"
+        name: "Tilting Trap Platform"
+        collision_file: "tilting_trap_platform/collision.inc.c"
+      - id: "mesh_elevator"
+        name: "Mesh Elevator"
+        collision_file: "mesh_elevator/collision.inc.c"
+      - id: "merry_go_round"
+        name: "Merry Go Round"
+        collision_file: "merry_go_round/collision.inc.c"
+      - id: "coffin"
+        name: "Coffin"
+        collision_file: "coffin/collision.inc.c"
+      - id: "moving_bookshelf"
+        name: "Moving Bookshelf"
+        collision_file: "moving_bookshelf/collision.inc.c"
+
+  hmc:
+    name: "Hazy Maze Cave"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "elevator"
+        name: "Elevator"
+        collision_file: "elevator/collision.inc.c"
+      - id: "controllable_platform"
+        name: "Controllable Platform"
+        collision_file: "controllable_platform/collision.inc.c"
+
+  lll:
+    name: "Lethal Lava Land"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Volcano"
+        collision_file: "areas/2/collision.inc.c"
+    objects:
+      - id: "moving_octagonal_mesh_platform"
+        name: "Moving Octagonal Platform"
+        collision_file: "moving_octagonal_mesh_platform/collision.inc.c"
+      - id: "sinking_rectangular_platform"
+        name: "Sinking Rectangular Platform"
+        collision_file: "sinking_rectangular_platform/collision.inc.c"
+      - id: "sinking_square_platform"
+        name: "Sinking Square Platform"
+        collision_file: "sinking_square_platform/collision.inc.c"
+      - id: "tilting_square_platform"
+        name: "Tilting Square Platform"
+        collision_file: "tilting_square_platform/collision.inc.c"
+      - id: "puzzle_piece"
+        name: "Puzzle Piece"
+        collision_file: "puzzle_piece/collision.inc.c"
+
+  ssl:
+    name: "Shifting Sand Land"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Pyramid Interior"
+        collision_file: "areas/2/collision.inc.c"
+      - id: "3"
+        name: "Pyramid Eyerok"
+        collision_file: "areas/3/collision.inc.c"
+    objects:
+      - id: "grindel"
+        name: "Grindel"
+        collision_file: "grindel/collision.inc.c"
+      - id: "spindel"
+        name: "Spindel"
+        collision_file: "spindel/collision.inc.c"
+      - id: "moving_pyramid_wall"
+        name: "Moving Pyramid Wall"
+        collision_file: "moving_pyramid_wall/collision.inc.c"
+      - id: "pyramid_elevator"
+        name: "Pyramid Elevator"
+        collision_file: "pyramid_elevator/collision.inc.c"
+
+  ddd:
+    name: "Dire Dire Docks"
+    areas:
+      - id: "1"
+        name: "Whirlpool Area"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Submarine Dock"
+        collision_file: "areas/2/collision.inc.c"
+    objects:
+      - id: "submarine"
+        name: "Submarine"
+        collision_file: "submarine/collision.inc.c"
+      - id: "moving_pole"
+        name: "Moving Pole"
+        collision_file: "moving_pole/collision.inc.c"
+
+  sl:
+    name: "Snowman's Land"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "snow_mound"
+        name: "Snow Mound"
+        collision_file: "snow_mound/collision.inc.c"
+
+  wdw:
+    name: "Wet-Dry World"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Downtown"
+        collision_file: "areas/2/collision.inc.c"
+    objects:
+      - id: "square_floating_platform"
+        name: "Square Floating Platform"
+        collision_file: "square_floating_platform/collision.inc.c"
+      - id: "arrow_lift"
+        name: "Arrow Lift"
+        collision_file: "arrow_lift/collision.inc.c"
+      - id: "express_elevator_platform"
+        name: "Express Elevator Platform"
+        collision_file: "express_elevator_platform/collision.inc.c"
+
+  ttm:
+    name: "Tall, Tall Mountain"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Slide"
+        collision_file: "areas/2/collision.inc.c"
+      - id: "3"
+        name: "Slide Pt. 2"
+        collision_file: "areas/3/collision.inc.c"
+      - id: "4"
+        name: "Slide Pt. 3"
+        collision_file: "areas/4/collision.inc.c"
+    objects:
+      - id: "rolling_log"
+        name: "Rolling Log"
+        collision_file: "rolling_log/collision.inc.c"
+      - id: "mushroom_1up"
+        name: "1-Up Mushroom"
+        collision_file: "mushroom_1up/collision.inc.c"
+
+  thi:
+    name: "Tiny-Huge Island"
+    areas:
+      - id: "1"
+        name: "Huge Island"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Tiny Island"
+        collision_file: "areas/2/collision.inc.c"
+      - id: "3"
+        name: "Wiggler's Cave"
+        collision_file: "areas/3/collision.inc.c"
+    objects:
+      - id: "huge_island_top"
+        name: "Huge Island Top"
+        collision_file: "huge_island_top/collision.inc.c"
+
+  ttc:
+    name: "Tick Tock Clock"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "rotating_cube"
+        name: "Rotating Cube"
+        collision_file: "rotating_cube/collision.inc.c"
+      - id: "rotating_prism"
+        name: "Rotating Prism"
+        collision_file: "rotating_prism/collision.inc.c"
+      - id: "pendulum"
+        name: "Pendulum"
+        collision_file: "pendulum/collision.inc.c"
+      - id: "large_treadmill"
+        name: "Large Treadmill"
+        collision_file: "large_treadmill/collision.inc.c"
+      - id: "small_treadmill"
+        name: "Small Treadmill"
+        collision_file: "small_treadmill/collision.inc.c"
+      - id: "rotating_hexagon"
+        name: "Rotating Hexagon"
+        collision_file: "rotating_hexagon/collision.inc.c"
+      - id: "rotating_triangle"
+        name: "Rotating Triangle"
+        collision_file: "rotating_triangle/collision.inc.c"
+
+  rr:
+    name: "Rainbow Ride"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "donut_platform"
+        name: "Donut Platform"
+        collision_file: "donut_platform/collision.inc.c"
+      - id: "elevator_platform"
+        name: "Elevator Platform"
+        collision_file: "elevator_platform/collision.inc.c"
+      - id: "rotating_platform_with_fire"
+        name: "Rotating Platform with Fire"
+        collision_file: "rotating_platform_with_fire/collision.inc.c"
+      - id: "pendulum"
+        name: "Pendulum"
+        collision_file: "pendulum/collision.inc.c"
+
+  # Special Levels
+  bitdw:
+    name: "Bowser in the Dark World"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "sliding_platform"
+        name: "Sliding Platform"
+        collision_file: "sliding_platform/collision.inc.c"
+      - id: "seesaw_platform"
+        name: "Seesaw Platform"
+        collision_file: "seesaw_platform/collision.inc.c"
+      - id: "square_platform"
+        name: "Square Platform"
+        collision_file: "square_platform/collision.inc.c"
+      - id: "ferris_wheel_axle"
+        name: "Ferris Wheel Axle"
+        collision_file: "ferris_wheel_axle/collision.inc.c"
+      - id: "collapsing_stairs_1"
+        name: "Collapsing Stairs 1"
+        collision_file: "collapsing_stairs_1/collision.inc.c"
+      - id: "collapsing_stairs_2"
+        name: "Collapsing Stairs 2"
+        collision_file: "collapsing_stairs_2/collision.inc.c"
+      - id: "collapsing_stairs_3"
+        name: "Collapsing Stairs 3"
+        collision_file: "collapsing_stairs_3/collision.inc.c"
+      - id: "collapsing_stairs_4"
+        name: "Collapsing Stairs 4"
+        collision_file: "collapsing_stairs_4/collision.inc.c"
+      - id: "collapsing_stairs_5"
+        name: "Collapsing Stairs 5"
+        collision_file: "collapsing_stairs_5/collision.inc.c"
+
+  bitfs:
+    name: "Bowser in the Fire Sea"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "elevator"
+        name: "Elevator"
+        collision_file: "elevator/collision.inc.c"
+      - id: "moving_square_platform"
+        name: "Moving Square Platform"
+        collision_file: "moving_square_platform/collision.inc.c"
+      - id: "seesaw_platform"
+        name: "Seesaw Platform"
+        collision_file: "seesaw_platform/collision.inc.c"
+      - id: "sinking_cage_platform"
+        name: "Sinking Cage Platform"
+        collision_file: "sinking_cage_platform/collision.inc.c"
+      - id: "sinking_platforms"
+        name: "Sinking Platforms"
+        collision_file: "sinking_platforms/collision.inc.c"
+      - id: "sliding_platform"
+        name: "Sliding Platform"
+        collision_file: "sliding_platform/collision.inc.c"
+      - id: "tilting_square_platform"
+        name: "Tilting Square Platform"
+        collision_file: "tilting_square_platform/collision.inc.c"
+      - id: "tumbling_platform_far"
+        name: "Tumbling Platform (Far)"
+        collision_file: "tumbling_platform_far/collision.inc.c"
+      - id: "tumbling_platform_near"
+        name: "Tumbling Platform (Near)"
+        collision_file: "tumbling_platform_near/collision.inc.c"
+
+  bits:
+    name: "Bowser in the Sky"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  # Castle Areas
+  castle_grounds:
+    name: "Castle Grounds"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  castle_inside:
+    name: "Castle Inside"
+    areas:
+      - id: "1"
+        name: "Main Floor"
+        collision_file: "areas/1/collision.inc.c"
+      - id: "2"
+        name: "Upper Floor"
+        collision_file: "areas/2/collision.inc.c"
+      - id: "3"
+        name: "Basement"
+        collision_file: "areas/3/collision.inc.c"
+
+  castle_courtyard:
+    name: "Castle Courtyard"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  # Special Areas
+  pss:
+    name: "Princess's Secret Slide"
+    areas:
+      - id: "1"
+        name: "Slide"
+        collision_file: "areas/1/collision.inc.c"
+
+  sa:
+    name: "Secret Aquarium"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  wmotr:
+    name: "Wing Mario Over the Rainbow"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  totwc:
+    name: "Tower of the Wing Cap"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  vcutm:
+    name: "Vanish Cap Under the Moat"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  cotmc:
+    name: "Cavern of the Metal Cap"
+    areas:
+      - id: "1"
+        name: "Main Area"
+        collision_file: "areas/1/collision.inc.c"
+
+  # Boss Levels
+  bowser_1:
+    name: "Bowser in the Dark World (Boss)"
+    areas:
+      - id: "1"
+        name: "Boss Arena"
+        collision_file: "areas/1/collision.inc.c"
+
+  bowser_2:
+    name: "Bowser in the Fire Sea (Boss)"
+    areas:
+      - id: "1"
+        name: "Boss Arena"
+        collision_file: "areas/1/collision.inc.c"
+
+  bowser_3:
+    name: "Bowser in the Sky (Boss)"
+    areas:
+      - id: "1"
+        name: "Boss Arena"
+        collision_file: "areas/1/collision.inc.c"
+    objects:
+      - id: "falling_platform_1"
+        name: "Falling Platform 1"
+        collision_file: "falling_platform_1/collision.inc.c"
+      - id: "falling_platform_2"
+        name: "Falling Platform 2"
+        collision_file: "falling_platform_2/collision.inc.c"
+      - id: "falling_platform_3"
+        name: "Falling Platform 3"
+        collision_file: "falling_platform_3/collision.inc.c"
+      - id: "falling_platform_4"
+        name: "Falling Platform 4"
+        collision_file: "falling_platform_4/collision.inc.c"
+      - id: "falling_platform_5"
+        name: "Falling Platform 5"
+        collision_file: "falling_platform_5/collision.inc.c"
+      - id: "falling_platform_6"
+        name: "Falling Platform 6"
+        collision_file: "falling_platform_6/collision.inc.c"
+      - id: "falling_platform_7"
+        name: "Falling Platform 7"
+        collision_file: "falling_platform_7/collision.inc.c"
+      - id: "falling_platform_8"
+        name: "Falling Platform 8"
+        collision_file: "falling_platform_8/collision.inc.c"
+      - id: "falling_platform_9"
+        name: "Falling Platform 9"
+        collision_file: "falling_platform_9/collision.inc.c"
+      - id: "falling_platform_10"
+        name: "Falling Platform 10"
+        collision_file: "falling_platform_10/collision.inc.c"
+

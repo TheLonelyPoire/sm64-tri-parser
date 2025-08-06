@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SM64 Collision Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            z-index: 100;
+            min-width: 280px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        #controls h3 {
+            margin: 0 0 15px 0;
+            color: #4CAF50;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .surface-type {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 5px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        
+        .surface-type:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .color-box {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .surface-label {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .triangle-count {
+            color: #aaa;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 200;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        #instructions p {
+            margin: 3px 0;
+            font-size: 13px;
+        }
+        
+        button {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px 2px;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+        
+        button:hover {
+            background: linear-gradient(145deg, #45a049, #3d8b40);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        input[type="file"]::file-selector-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        #stats {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .toggle-btn {
+            background: #666;
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+        
+        .toggle-btn.active {
+            background: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="loading">
+            <div class="spinner"></div>
+            <div>Loading collision data...</div>
+        </div>
+        
+        <div id="controls">
+            <h3>🏗️ SM64 Collision Viewer</h3>
+            
+            <div class="button-group">
+                <button onclick="loadSampleData()">Load Sample</button>
+                <button onclick="exportMesh()">Export OBJ</button>
+                <button onclick="resetView()">Reset View</button>
+            </div>
+            
+            <input type="file" id="fileInput" accept=".c,.inc.c,.json" />
+            
+            <div class="button-group">
+                <button class="toggle-btn" id="wireframeBtn" onclick="toggleWireframe()">Wireframe</button>
+                <button class="toggle-btn" id="shadingBtn" onclick="toggleShading()">Flat Shading</button>
+                <button class="toggle-btn" id="viewModeBtn" onclick="toggleViewMode()">Surface Types</button>
+            </div>
+            
+            <div id="surfaceTypes"></div>
+            
+            <div id="stats">
+                <div id="vertexCount">Vertices: 0</div>
+                <div id="triangleCount">Triangles: 0</div>
+            </div>
+        </div>
+        
+        <div id="instructions">
+            <p><strong>🎮 Controls:</strong></p>
+            <p>• Left click + drag: Rotate view</p>
+            <p>• Right click + drag: Pan camera</p>
+            <p>• Mouse wheel: Zoom in/out</p>
+            <p>• Click triangle: Show surface info</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // Global variables
+        let scene, camera, renderer, controls;
+        let meshGroup;
+        let raycaster, mouse;
+        let triangleData = [];
+        let wireframeMode = false;
+        let flatShading = false;
+        let viewMode = 'surface'; // 'surface' or 'geometry'
+        
+        // Enhanced surface type colors with better contrast
+        const SURFACE_COLORS = {
+            'SURFACE_DEFAULT': 0x909090,      // Light Gray
+            'SURFACE_BURNING': 0xff3030,      // Bright Red
+            'SURFACE_HANGABLE': 0x30ff30,     // Bright Green
+            'SURFACE_VERY_SLIPPERY': 0x3030ff, // Bright Blue
+            'SURFACE_NOT_SLIPPERY': 0xffff30,  // Bright Yellow
+            'SURFACE_WATER': 0x30ffff,         // Cyan
+            'SURFACE_QUICKSAND': 0xff8030,     // Orange
+            'SURFACE_DEATH_PLANE': 0xff30ff,   // Magenta
+            'SURFACE_CAMERA_BOUNDARY': 0x606060, // Dark Gray
+            'SURFACE_INSTANT_MOVING_WALL': 0xff6030, // Red-Orange
+            'SURFACE_SLOW_QUICKSAND': 0xcc6600, // Brown
+        };
+        
+        // Geometry type colors for floor/wall/ceiling classification
+        const GEOMETRY_COLORS = {
+            'FLOOR': 0x3030ff,    // Blue
+            'WALL': 0x30ff30,     // Green  
+            'CEILING': 0xff3030   // Red
+        };
+        
+        // Initialize the scene
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            scene.fog = new THREE.Fog(0x1a1a2e, 5000, 25000);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 50000);
+            camera.position.set(2000, 2000, 2000);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 200000;
+            controls.minDistance = 10;
+            
+            // Enhanced lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(2000, 3000, 1000);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 10000;
+            scene.add(directionalLight);
+            
+            // Additional fill light
+            const fillLight = new THREE.DirectionalLight(0x8888ff, 0.3);
+            fillLight.position.set(-1000, 1000, -1000);
+            scene.add(fillLight);
+            
+            // Raycaster for picking
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('click', onMouseClick);
+            document.getElementById('fileInput').addEventListener('change', onFileLoad);
+            
+            // Hide loading initially
+            document.getElementById('loading').style.display = 'none';
+            
+            // Start render loop
+            animate();
+            
+            // Try to load sample data automatically
+            setTimeout(() => {
+                loadSampleData();
+            }, 500);
+        }
+        
+        // Handle window resize
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Handle mouse clicks for triangle selection
+        function onMouseClick(event) {
+            // Ignore clicks on UI elements
+            if (event.target.closest('#controls') || event.target.closest('#instructions')) {
+                return;
+            }
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            if (meshGroup) {
+                const intersects = raycaster.intersectObjects(meshGroup.children, true);
+                
+                if (intersects.length > 0) {
+                    const intersect = intersects[0];
+                    const mesh = intersect.object;
+                    
+                    // Show surface type info
+                    const surfaceType = mesh.userData.surfaceType || 'Unknown';
+                    const point = intersect.point;
+                    
+                    showTriangleInfo(surfaceType, point);
+                }
+            }
+        }
+        
+        // Show triangle information
+        function showTriangleInfo(surfaceType, point) {
+            if (viewMode === 'surface') {
+                const cleanSurfaceType = surfaceType.replace('SURFACE_', '');
+                const info = `Surface Type: ${cleanSurfaceType}
+                
+Location: (${Math.round(point.x)}, ${Math.round(point.y)}, ${Math.round(point.z)})
+
+Properties:
+${getSurfaceProperties(surfaceType)}`;
+                
+                alert(info);
+            } else {
+                // Get geometry type from mesh userData
+                const meshChildren = meshGroup.children;
+                let geometryType = 'Unknown';
+                
+                for (let mesh of meshChildren) {
+                    if (mesh.userData.surfaceType === surfaceType) {
+                        geometryType = mesh.userData.geometryType || 'Unknown';
+                        break;
+                    }
+                }
+                
+                const info = `Geometry Type: ${geometryType}
+                
+Location: (${Math.round(point.x)}, ${Math.round(point.y)}, ${Math.round(point.z)})
+
+Classification:
+${getGeometryProperties(geometryType)}`;
+                
+                alert(info);
+            }
+        }
+        
+        // Get surface properties description
+        function getSurfaceProperties(surfaceType) {
+            const properties = {
+                'SURFACE_DEFAULT': '• Standard collision surface\n• Normal friction and traction',
+                'SURFACE_BURNING': '• Damages Mario on contact\n• Cannot stand on this surface',
+                'SURFACE_HANGABLE': '• Mario can hang from edges\n• Used for cliffs and ledges',
+                'SURFACE_VERY_SLIPPERY': '• Extremely low friction\n• Mario slides easily',
+                'SURFACE_NOT_SLIPPERY': '• High friction surface\n• Good traction for climbing',
+                'SURFACE_WATER': '• Swimming mechanics\n• Special water physics',
+                'SURFACE_QUICKSAND': '• Slows Mario down\n• Gradual sinking effect',
+                'SURFACE_DEATH_PLANE': '• Instant death on contact\n• Usually invisible barriers',
+                'SURFACE_CAMERA_BOUNDARY': '• Camera collision only\n• Mario passes through'
+            };
+            
+            return properties[surfaceType] || '• Unknown surface properties';
+        }
+        
+        // Get geometry properties description
+        function getGeometryProperties(geometryType) {
+            const properties = {
+                'FLOOR': '• Y-normal > 0.01\n• Horizontal surfaces Mario can walk on\n• Typically ground, platforms, steps',
+                'WALL': '• Y-normal between -0.01 and 0.01\n• Vertical surfaces for collision\n• Walls, barriers, vertical obstacles',
+                'CEILING': '• Y-normal < -0.01\n• Overhead surfaces\n• Roofs, overhangs, tunnel tops'
+            };
+            
+            return properties[geometryType] || '• Unknown geometry classification';
+        }
+        
+        // Calculate triangle normal and classify geometry type
+        function classifyTriangleGeometry(v1, v2, v3) {
+            // Calculate two edge vectors
+            const edge1 = {
+                x: v2.x - v1.x,
+                y: v2.y - v1.y,
+                z: v2.z - v1.z
+            };
+            
+            const edge2 = {
+                x: v3.x - v1.x,
+                y: v3.y - v1.y,
+                z: v3.z - v1.z
+            };
+            
+            // Calculate cross product (normal vector)
+            const normal = {
+                x: edge1.y * edge2.z - edge1.z * edge2.y,
+                y: edge1.z * edge2.x - edge1.x * edge2.z,
+                z: edge1.x * edge2.y - edge1.y * edge2.x
+            };
+            
+            // Normalize the normal vector
+            const length = Math.sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+            if (length > 0) {
+                normal.x /= length;
+                normal.y /= length;
+                normal.z /= length;
+            }
+            
+            // Classify based on Y-normal value
+            if (normal.y > 0.01) {
+                return 'FLOOR';
+            } else if (normal.y < -0.01) {
+                return 'CEILING';
+            } else {
+                return 'WALL';
+            }
+        }
+        
+        // Load file from input
+        function onFileLoad(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('loading').style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (file.name.endsWith('.json')) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            createMeshFromJSON(data);
+                        } catch (error) {
+                            console.error('Error parsing JSON:', error);
+                            alert('Error parsing JSON file');
+                        }
+                    } else {
+                        parseCollisionData(e.target.result);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+        
+        // Load sample data
+        function loadSampleData() {
+            document.getElementById('loading').style.display = 'block';
+            
+            // Try to load JSON first, fallback to parsing .c file
+            fetch('collision_data.json')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('JSON not found');
+                })
+                .then(data => createMeshFromJSON(data))
+                .catch(() => {
+                    // Fallback to parsing the .c file
+                    fetch('bitfs_tris.inc.c')
+                        .then(response => response.text())
+                        .then(data => parseCollisionData(data))
+                        .catch(error => {
+                            console.error('Error loading sample data:', error);
+                            document.getElementById('loading').style.display = 'none';
+                            alert('Could not load sample data. Please use the file input to load a collision file.');
+                        });
+                });
+        }
+        
+        // Create mesh from JSON data
+        function createMeshFromJSON(data) {
+            try {
+                createMesh(data);
+                if (viewMode === 'surface') {
+                    updateSurfaceTypeList(data.surface_stats);
+                } else {
+                    updateGeometryTypeList(data.triangles);
+                }
+                updateStats(data.vertices.length, data.triangles.length);
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Error creating mesh from JSON:', error);
+                alert('Error creating mesh: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // Parse collision data and create 3D mesh
+        function parseCollisionData(content) {
+            setTimeout(() => {
+                try {
+                    const parsed = parseCollisionFile(content);
+                    createMesh(parsed);
+                    if (viewMode === 'surface') {
+                        updateSurfaceTypeList(parsed.surface_stats);
+                    } else {
+                        updateGeometryTypeList(parsed.triangles);
+                    }
+                    updateStats(parsed.vertices.length, parsed.triangles.length);
+                    document.getElementById('loading').style.display = 'none';
+                } catch (error) {
+                    console.error('Error parsing collision data:', error);
+                    alert('Error parsing collision data: ' + error.message);
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 100);
+        }
+        
+        // Parse collision file content
+        function parseCollisionFile(content) {
+            const vertices = [];
+            const triangles = [];
+            const surfaceStats = {};
+            
+            // Parse vertices
+            const vertexPattern = /COL_VERTEX\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/g;
+            let match;
+            while ((match = vertexPattern.exec(content)) !== null) {
+                vertices.push({
+                    x: parseInt(match[1]),
+                    y: parseInt(match[2]),
+                    z: parseInt(match[3])
+                });
+            }
+            
+            // Parse triangles with surface types
+            const lines = content.split('\n');
+            let currentSurface = 'SURFACE_DEFAULT';
+            
+            for (const line of lines) {
+                // Check for surface type initialization
+                const surfaceMatch = line.match(/COL_TRI_INIT\(\s*([^,]+)\s*,\s*\d+\s*\)/);
+                if (surfaceMatch) {
+                    currentSurface = surfaceMatch[1].trim();
+                    continue;
+                }
+                
+                // Check for triangle definition
+                const triMatch = line.match(/COL_TRI\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+                if (triMatch) {
+                    const v1Idx = parseInt(triMatch[1]);
+                    const v2Idx = parseInt(triMatch[2]);
+                    const v3Idx = parseInt(triMatch[3]);
+                    
+                    if (v1Idx < vertices.length && v2Idx < vertices.length && v3Idx < vertices.length) {
+                        triangles.push({
+                            v1: vertices[v1Idx],
+                            v2: vertices[v2Idx],
+                            v3: vertices[v3Idx],
+                            surface: currentSurface
+                        });
+                        
+                        // Update surface stats
+                        if (!surfaceStats[currentSurface]) {
+                            surfaceStats[currentSurface] = 0;
+                        }
+                        surfaceStats[currentSurface]++;
+                    }
+                }
+            }
+            
+            console.log(`Parsed ${vertices.length} vertices and ${triangles.length} triangles`);
+            return { vertices, triangles, surface_stats: surfaceStats };
+        }
+        
+        // Create 3D mesh from parsed data
+        function createMesh(data) {
+            // Clear existing mesh
+            if (meshGroup) {
+                scene.remove(meshGroup);
+            }
+            
+            meshGroup = new THREE.Group();
+            triangleData = data.triangles;
+            
+            if (viewMode === 'surface') {
+                createSurfaceTypeMesh(data);
+            } else {
+                createGeometryTypeMesh(data);
+            }
+            
+            scene.add(meshGroup);
+            
+            // Center the camera on the mesh
+            const box = new THREE.Box3().setFromObject(meshGroup);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            
+            // Position camera to view the entire mesh
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+            cameraZ *= 2.5; // Zoom out a bit more
+            
+            camera.position.set(center.x + cameraZ * 0.7, center.y + cameraZ * 0.7, center.z + cameraZ * 0.7);
+            controls.target.copy(center);
+            controls.update();
+            
+            const groupType = viewMode === 'surface' ? 'surface types' : 'geometry types';
+            console.log(`Created mesh with ${meshGroup.children.length} ${groupType}`);
+        }
+        
+        // Create mesh grouped by surface types
+        function createSurfaceTypeMesh(data) {
+            // Group triangles by surface type
+            const trianglesBySurface = {};
+            data.triangles.forEach(triangle => {
+                if (!trianglesBySurface[triangle.surface]) {
+                    trianglesBySurface[triangle.surface] = [];
+                }
+                trianglesBySurface[triangle.surface].push(triangle);
+            });
+            
+            // Create a mesh for each surface type
+            Object.keys(trianglesBySurface).forEach(surfaceType => {
+                const triangles = trianglesBySurface[surfaceType];
+                const geometry = new THREE.BufferGeometry();
+                
+                const vertices = [];
+                
+                triangles.forEach((triangle) => {
+                    // Add triangle vertices
+                    vertices.push(triangle.v1.x, triangle.v1.y, triangle.v1.z);
+                    vertices.push(triangle.v2.x, triangle.v2.y, triangle.v2.z);
+                    vertices.push(triangle.v3.x, triangle.v3.y, triangle.v3.z);
+                });
+                
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.computeVertexNormals();
+                
+                // Get color for this surface type
+                const color = SURFACE_COLORS[surfaceType] || 0x808080;
+                
+                const material = new THREE.MeshLambertMaterial({
+                    color: color,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.85,
+                    wireframe: wireframeMode,
+                    flatShading: flatShading
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.userData.surfaceType = surfaceType;
+                mesh.userData.triangleCount = triangles.length;
+                
+                meshGroup.add(mesh);
+            });
+        }
+        
+        // Create mesh grouped by geometry types (floor/wall/ceiling)
+        function createGeometryTypeMesh(data) {
+            // Group triangles by geometry type
+            const trianglesByGeometry = {
+                'FLOOR': [],
+                'WALL': [],
+                'CEILING': []
+            };
+            
+            data.triangles.forEach(triangle => {
+                const geometryType = classifyTriangleGeometry(triangle.v1, triangle.v2, triangle.v3);
+                trianglesByGeometry[geometryType].push(triangle);
+            });
+            
+            // Create a mesh for each geometry type
+            Object.keys(trianglesByGeometry).forEach(geometryType => {
+                const triangles = trianglesByGeometry[geometryType];
+                if (triangles.length === 0) return;
+                
+                const geometry = new THREE.BufferGeometry();
+                
+                const vertices = [];
+                
+                triangles.forEach((triangle) => {
+                    // Add triangle vertices
+                    vertices.push(triangle.v1.x, triangle.v1.y, triangle.v1.z);
+                    vertices.push(triangle.v2.x, triangle.v2.y, triangle.v2.z);
+                    vertices.push(triangle.v3.x, triangle.v3.y, triangle.v3.z);
+                });
+                
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.computeVertexNormals();
+                
+                // Get color for this geometry type
+                const color = GEOMETRY_COLORS[geometryType];
+                
+                const material = new THREE.MeshLambertMaterial({
+                    color: color,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.85,
+                    wireframe: wireframeMode,
+                    flatShading: flatShading
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.userData.surfaceType = geometryType; // Reuse this field for consistency
+                mesh.userData.geometryType = geometryType;
+                mesh.userData.triangleCount = triangles.length;
+                
+                meshGroup.add(mesh);
+            });
+        }
+        
+        // Update the surface type list in the UI
+        function updateSurfaceTypeList(surfaceStats) {
+            const container = document.getElementById('surfaceTypes');
+            container.innerHTML = '<h4 style="margin: 15px 0 10px 0; color: #4CAF50;">Surface Types:</h4>';
+            
+            // Sort by triangle count (descending)
+            const sortedSurfaces = Object.entries(surfaceStats).sort((a, b) => b[1] - a[1]);
+            
+            sortedSurfaces.forEach(([surfaceType, count]) => {
+                const color = SURFACE_COLORS[surfaceType] || 0x808080;
+                
+                const div = document.createElement('div');
+                div.className = 'surface-type';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'color-box';
+                colorBox.style.backgroundColor = `#${color.toString(16).padStart(6, '0')}`;
+                
+                const label = document.createElement('div');
+                label.className = 'surface-label';
+                label.textContent = surfaceType.replace('SURFACE_', '').replace(/_/g, ' ');
+                
+                const countSpan = document.createElement('div');
+                countSpan.className = 'triangle-count';
+                countSpan.textContent = count.toLocaleString();
+                
+                div.appendChild(colorBox);
+                div.appendChild(label);
+                div.appendChild(countSpan);
+                container.appendChild(div);
+            });
+        }
+        
+        // Update the geometry type list in the UI  
+        function updateGeometryTypeList(triangles) {
+            const container = document.getElementById('surfaceTypes');
+            container.innerHTML = '<h4 style="margin: 15px 0 10px 0; color: #4CAF50;">Geometry Types:</h4>';
+            
+            // Count triangles by geometry type
+            const geometryStats = {
+                'FLOOR': 0,
+                'WALL': 0,
+                'CEILING': 0
+            };
+            
+            triangles.forEach(triangle => {
+                const geometryType = classifyTriangleGeometry(triangle.v1, triangle.v2, triangle.v3);
+                geometryStats[geometryType]++;
+            });
+            
+            // Sort by triangle count (descending)
+            const sortedGeometry = Object.entries(geometryStats)
+                .filter(([_, count]) => count > 0)
+                .sort((a, b) => b[1] - a[1]);
+            
+            sortedGeometry.forEach(([geometryType, count]) => {
+                const color = GEOMETRY_COLORS[geometryType];
+                
+                const div = document.createElement('div');
+                div.className = 'surface-type';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'color-box';
+                colorBox.style.backgroundColor = `#${color.toString(16).padStart(6, '0')}`;
+                
+                const label = document.createElement('div');
+                label.className = 'surface-label';
+                label.textContent = geometryType;
+                
+                const countSpan = document.createElement('div');
+                countSpan.className = 'triangle-count';
+                countSpan.textContent = count.toLocaleString();
+                
+                div.appendChild(colorBox);
+                div.appendChild(label);
+                div.appendChild(countSpan);
+                container.appendChild(div);
+            });
+        }
+        
+        // Update statistics
+        function updateStats(vertexCount, triangleCount) {
+            document.getElementById('vertexCount').textContent = `Vertices: ${vertexCount.toLocaleString()}`;
+            document.getElementById('triangleCount').textContent = `Triangles: ${triangleCount.toLocaleString()}`;
+        }
+        
+        // Toggle wireframe mode
+        function toggleWireframe() {
+            wireframeMode = !wireframeMode;
+            const btn = document.getElementById('wireframeBtn');
+            btn.classList.toggle('active', wireframeMode);
+            
+            if (meshGroup) {
+                meshGroup.children.forEach(mesh => {
+                    if (mesh.material) {
+                        mesh.material.wireframe = wireframeMode;
+                    }
+                });
+            }
+        }
+        
+        // Toggle flat shading
+        function toggleShading() {
+            flatShading = !flatShading;
+            const btn = document.getElementById('shadingBtn');
+            btn.classList.toggle('active', flatShading);
+            
+            if (meshGroup) {
+                meshGroup.children.forEach(mesh => {
+                    if (mesh.material) {
+                        mesh.material.flatShading = flatShading;
+                        mesh.material.needsUpdate = true;
+                    }
+                });
+            }
+        }
+        
+        // Toggle between surface type and geometry type view modes
+        function toggleViewMode() {
+            viewMode = viewMode === 'surface' ? 'geometry' : 'surface';
+            const btn = document.getElementById('viewModeBtn');
+            
+            if (viewMode === 'surface') {
+                btn.textContent = 'Surface Types';
+                btn.classList.remove('active');
+            } else {
+                btn.textContent = 'Geometry Types';
+                btn.classList.add('active');
+            }
+            
+            // Recreate the mesh with the new view mode
+            if (triangleData && triangleData.length > 0) {
+                const data = { triangles: triangleData };
+                createMesh(data);
+                
+                if (viewMode === 'surface') {
+                    // Calculate surface stats from triangle data
+                    const surfaceStats = {};
+                    triangleData.forEach(triangle => {
+                        if (!surfaceStats[triangle.surface]) {
+                            surfaceStats[triangle.surface] = 0;
+                        }
+                        surfaceStats[triangle.surface]++;
+                    });
+                    updateSurfaceTypeList(surfaceStats);
+                } else {
+                    updateGeometryTypeList(triangleData);
+                }
+            }
+        }
+        
+        // Export mesh as OBJ
+        function exportMesh() {
+            if (!triangleData || triangleData.length === 0) {
+                alert('No mesh data to export');
+                return;
+            }
+            
+            let objContent = '# SM64 Collision Mesh Export\n';
+            objContent += `# Generated by SM64 Collision Viewer\n`;
+            objContent += `# ${triangleData.length} triangles\n\n`;
+            
+            // Collect all unique vertices
+            const vertexMap = new Map();
+            const vertices = [];
+            let vertexIndex = 1;
+            
+            triangleData.forEach(triangle => {
+                [triangle.v1, triangle.v2, triangle.v3].forEach(vertex => {
+                    const key = `${vertex.x},${vertex.y},${vertex.z}`;
+                    if (!vertexMap.has(key)) {
+                        vertexMap.set(key, vertexIndex++);
+                        vertices.push(vertex);
+                    }
+                });
+            });
+            
+            // Write vertices
+            vertices.forEach(vertex => {
+                objContent += `v ${vertex.x} ${vertex.y} ${vertex.z}\n`;
+            });
+            
+            objContent += '\n';
+            
+            // Group faces by surface type
+            const facesBySurface = {};
+            triangleData.forEach(triangle => {
+                if (!facesBySurface[triangle.surface]) {
+                    facesBySurface[triangle.surface] = [];
+                }
+                
+                const v1Key = `${triangle.v1.x},${triangle.v1.y},${triangle.v1.z}`;
+                const v2Key = `${triangle.v2.x},${triangle.v2.y},${triangle.v2.z}`;
+                const v3Key = `${triangle.v3.x},${triangle.v3.y},${triangle.v3.z}`;
+                
+                const v1Idx = vertexMap.get(v1Key);
+                const v2Idx = vertexMap.get(v2Key);
+                const v3Idx = vertexMap.get(v3Key);
+                
+                facesBySurface[triangle.surface].push(`f ${v1Idx} ${v2Idx} ${v3Idx}`);
+            });
+            
+            // Write faces grouped by surface type
+            Object.keys(facesBySurface).forEach(surfaceType => {
+                objContent += `\n# ${surfaceType} (${facesBySurface[surfaceType].length} triangles)\n`;
+                objContent += `g ${surfaceType}\n`;
+                facesBySurface[surfaceType].forEach(face => {
+                    objContent += face + '\n';
+                });
+            });
+            
+            // Download the file
+            const blob = new Blob([objContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sm64_collision_mesh.obj';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Reset camera view
+        function resetView() {
+            if (meshGroup) {
+                const box = new THREE.Box3().setFromObject(meshGroup);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const fov = camera.fov * (Math.PI / 180);
+                let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+                cameraZ *= 2.5;
+                
+                camera.position.set(center.x + cameraZ * 0.7, center.y + cameraZ * 0.7, center.z + cameraZ * 0.7);
+                controls.target.copy(center);
+                controls.update();
+            }
+        }
+        
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
