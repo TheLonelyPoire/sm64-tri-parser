@@ -44,28 +44,6 @@ jobs:
         run: |
           cp -r data build/
           
-      - name: Create index.html redirect
-        run: |
-          cat > build/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>SM64 Triangle Parser</title>
-              <meta http-equiv="refresh" content="0; url=collision_viewer.html">
-              <link rel="canonical" href="collision_viewer.html">
-          </head>
-          <body>
-              <h1>SM64 Triangle Parser</h1>
-              <p>Redirecting to <a href="collision_viewer.html">SM64 Collision Viewer</a>...</p>
-              <script>
-                  window.location.href = 'collision_viewer.html';
-              </script>
-          </body>
-          </html>
-          EOF
-          
       - name: Fix relative paths for GitHub Pages
         run: |
           # Update paths in JavaScript files to work with GitHub Pages subdirectory
