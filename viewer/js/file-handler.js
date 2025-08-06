@@ -10,12 +10,12 @@ export class FileHandler {
     
     async loadSampleData() {
         // Load the default BITFS collision file
-        this.loadSpecificFile('bitfs_tris.inc.c');
+        this.loadSpecificFile('./data/bitfs_tris.inc.c');
     }
     
     async loadSpecificFile(filename) {
         try {
-            const response = await fetch(`../data/${filename}`);
+            const response = await fetch(`./data/${filename}`);
             if (!response.ok) {
                 throw new Error(`Failed to load ${filename}`);
             }

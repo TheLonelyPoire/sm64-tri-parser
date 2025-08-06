@@ -27,7 +27,7 @@ export class CollisionFileManager {
     
     async loadCollisionFile(filename) {
         try {
-            const response = await fetch(`../data/${filename}`);
+            const response = await fetch(`./data/${filename}`);
             if (!response.ok) {
                 throw new Error(`Failed to load ${filename}`);
             }

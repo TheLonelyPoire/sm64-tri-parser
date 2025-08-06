@@ -5,8 +5,8 @@
 
 export class LevelLoader {
     constructor() {
-        this.levelsPath = '../data/levels';
-        this.yamlPath = '../data/levels_list.yaml';
+        this.levelsPath = './data/levels';
+        this.yamlPath = './data/levels_list.yaml';
         this.collisionFiles = [];
     }
 
