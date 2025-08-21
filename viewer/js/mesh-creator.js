@@ -299,6 +299,8 @@ export class MeshCreator {
             font-size: 14px;
             z-index: 2000;
             max-width: 500px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
             border: 2px solid #4CAF50;
         `;
         
