@@ -2,6 +2,8 @@
 
 A useful tool for parsing and visualizing Super Mario 64 collision triangle data.
 
+See the [deployed visualizer web-app](https://thelonelypoire.github.io/sm64-tri-parser/).
+
 ## Project Structure
 
 ```
