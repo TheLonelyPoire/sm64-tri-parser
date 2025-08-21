@@ -33,7 +33,7 @@ class CollisionViewer {
         this.setupThreeJS();
         this.setupLights();
         this.setupEventListeners();
-        this.loadSampleData();
+        this.showWelcomeMessage();
     }
     
     setupThreeJS() {
@@ -70,6 +70,15 @@ class CollisionViewer {
         this.controls.dampingFactor = 0.1;
         this.controls.maxDistance = 30000;
         this.controls.minDistance = 100;
+        
+        // Enable touch controls for mobile devices
+        this.controls.enablePan = true;
+        this.controls.enableZoom = true;
+        this.controls.enableRotate = true;
+        this.controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
     }
     
     setupLights() {
@@ -106,6 +115,12 @@ class CollisionViewer {
     }
     
     loadCollisionData(triangleData, preserveCamera = false) {
+        // Remove welcome message if it exists
+        const welcomeMessage = document.getElementById('welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.remove();
+        }
+        
         // Save current camera state if preserving
         let savedCameraPosition = null;
         let savedCameraTarget = null;
@@ -318,8 +333,53 @@ class CollisionViewer {
         URL.revokeObjectURL(url);
     }
     
-    loadSampleData() {
-        this.fileHandler.loadSampleData();
+    showWelcomeMessage() {
+        // Create welcome message
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.id = 'welcome-message';
+        welcomeDiv.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #4CAF50;
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+        `;
+        
+        welcomeDiv.innerHTML = `
+            <h2 style="color: #4CAF50; margin-bottom: 20px; font-size: 24px;">
+                🎮 SM64 Collision Viewer
+            </h2>
+            <p style="margin-bottom: 20px; line-height: 1.6; font-size: 16px;">
+                Welcome! To get started, please select a level from the dropdown menu in the top-left corner.
+            </p>
+            <p style="margin-bottom: 0; font-size: 14px; opacity: 0.8;">
+                Choose from levels like <strong>BitFS</strong>, <strong>Bob-omb Battlefield</strong>, <strong>Cool Cool Mountain</strong>, and many more!
+            </p>
+        `;
+        
+        document.body.appendChild(welcomeDiv);
+        
+        // Auto-remove message after 8 seconds or when user interacts
+        const removeMessage = () => {
+            if (welcomeDiv.parentNode) {
+                welcomeDiv.remove();
+            }
+        };
+        
+        setTimeout(removeMessage, 8000);
+        
+        // Remove on click anywhere
+        document.addEventListener('click', removeMessage, { once: true });
     }
     
     onWindowResize() {

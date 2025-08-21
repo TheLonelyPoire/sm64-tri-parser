@@ -55,6 +55,24 @@ export class MeshCreator {
             this.handleTriangleSelection();
         });
         
+        // Touch events for mobile support
+        canvas.addEventListener('touchstart', (event) => {
+            if (event.touches.length === 1) {
+                // Single finger touch - treat as click for triangle selection
+                event.preventDefault();
+                this.updateTouchPosition(event.touches[0]);
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (event) => {
+            if (!this.isOrbiting && event.changedTouches.length === 1) {
+                // Single finger tap - select triangle
+                event.preventDefault();
+                this.updateTouchPosition(event.changedTouches[0]);
+                this.handleTriangleSelection();
+            }
+        }, { passive: false });
+        
         // Add cursor style changes
         canvas.style.cursor = 'crosshair';
         
@@ -70,6 +88,12 @@ export class MeshCreator {
         const rect = this.viewer.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+    
+    updateTouchPosition(touch) {
+        const rect = this.viewer.renderer.domElement.getBoundingClientRect();
+        this.mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
     }
     
     handleHover() {

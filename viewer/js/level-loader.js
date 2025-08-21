@@ -5,8 +5,8 @@
 
 export class LevelLoader {
     constructor() {
-        this.levelsPath = '../../data/levels';
-        this.yamlPath = '../../data/levels_list.yaml';
+        this.levelsPath = './data/levels';
+        this.yamlPath = './data/levels_list.yaml';
         this.collisionFiles = [];
     }
 
@@ -217,8 +217,9 @@ export class LevelLoader {
         const positions = {};
         const lines = scriptContent.split('\n');
         
-        // Look for OBJECT lines that match the pattern
-        const objectPattern = /OBJECT\(\s*\/\*model\*\/\s*MODEL_([^,]+),\s*\/\*pos\*\/\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*\/\*angle\*\/\s*(-?\d+),\s*(-?\d+),\s*(-?\d+)/;
+        // Look for OBJECT or OBJECT_WITH_ACTS lines that match the pattern
+        // Handle spaces between OBJECT and opening parenthesis
+        const objectPattern = /OBJECT(?:_WITH_ACTS)?\s*\(\s*\/\*model\*\/\s*MODEL_([^,]+),\s*\/\*pos\*\/\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*\/\*angle\*\/\s*(-?\d+),\s*(-?\d+),\s*(-?\d+)/;
         
         for (const line of lines) {
             const match = line.match(objectPattern);
@@ -248,15 +249,26 @@ export class LevelLoader {
         const levelAbbrUpper = levelAbbr.toUpperCase();
         const objectIdUpper = objectDef.id.toUpperCase();
         
-        // Try different possible model name patterns
-        const possibleModelNames = [
+        // Start with script_model_name if provided in YAML
+        const possibleModelNames = [];
+        
+        if (objectDef.script_model_name) {
+            if (Array.isArray(objectDef.script_model_name)) {
+                possibleModelNames.push(...objectDef.script_model_name);
+            } else {
+                possibleModelNames.push(objectDef.script_model_name);
+            }
+        }
+        
+        // Add default patterns as fallback
+        possibleModelNames.push(
             `${levelAbbrUpper}_${objectIdUpper}`,
             `LEVEL_GEOMETRY_${objectIdUpper}`,
             `${levelAbbrUpper}_${objectIdUpper.replace(/_/g, '_')}`,
             objectIdUpper
-        ];
+        );
         
-        // Add specific mappings for LLL objects based on the script.c patterns
+        // Keep LLL-specific mappings for backwards compatibility (until we move them to YAML)
         if (levelAbbr === 'lll') {
             const lllMappings = {
                 'tilting_square_platform': 'LLL_TILTING_SQUARE_PLATFORM',

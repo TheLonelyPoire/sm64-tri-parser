@@ -16,24 +16,19 @@ export class UIControls {
     }
     
     setupControls() {
+        // Create UI wrapper (flex container)
+        const uiWrapper = document.createElement('div');
+        uiWrapper.id = 'ui-wrapper';
+        document.body.appendChild(uiWrapper);
+        
         // Create UI container
         const uiContainer = document.createElement('div');
         uiContainer.id = 'ui-container';
-        uiContainer.style.cssText = `
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            z-index: 1000;
-            min-width: 300px;
-        `;
+        uiWrapper.appendChild(uiContainer);
         
-        document.body.appendChild(uiContainer);
+        // Create toggle button
+        const toggleButton = this.createToggleButton(uiContainer);
+        uiWrapper.appendChild(toggleButton);
         
         // Title
         const title = document.createElement('h3');
@@ -53,10 +48,15 @@ export class UIControls {
             line-height: 1.4;
         `;
         instructions.innerHTML = `
-            <strong style="color: #4CAF50;">💡 Tip:</strong><br>
-            • <strong>Hover</strong> over triangles to highlight them<br>
-            • <strong>Double-Click</strong> highlighted triangles for detailed info<br>
-            • <strong>Drag</strong> to rotate camera view
+            <strong style="color: #4CAF50;">💡 Controls:</strong><br>
+            ${this.isMobileDevice() ? 
+                '• <strong>One finger:</strong> Rotate camera<br>' +
+                '• <strong>Two fingers:</strong> Pan and zoom<br>' +
+                '• <strong>Tap</strong> triangles for detailed info' :
+                '• <strong>Hover</strong> over triangles to highlight them<br>' +
+                '• <strong>Double-Click</strong> highlighted triangles for detailed info<br>' +
+                '• <strong>Drag</strong> to rotate camera view'
+            }
         `;
         uiContainer.appendChild(instructions);
         
@@ -615,5 +615,46 @@ export class UIControls {
                 modal.remove();
             }
         }, 8000);
+    }
+
+    createToggleButton(uiContainer) {
+        // Create toggle button
+        const toggleButton = document.createElement('button');
+        toggleButton.id = 'ui-toggle-button';
+        toggleButton.innerHTML = '◀'; // Left arrow when expanded
+        toggleButton.className = 'expanded';
+        toggleButton.title = 'Collapse UI Panel';
+        
+        // Track collapse state
+        this.isUICollapsed = false;
+        
+        // Toggle functionality
+        toggleButton.addEventListener('click', () => {
+            this.isUICollapsed = !this.isUICollapsed;
+            
+            if (this.isUICollapsed) {
+                // Hide UI container
+                uiContainer.classList.add('collapsed');
+                toggleButton.classList.remove('expanded');
+                toggleButton.classList.add('collapsed');
+                toggleButton.innerHTML = '▶'; // Right arrow when collapsed
+                toggleButton.title = 'Expand UI Panel';
+            } else {
+                // Show UI container
+                uiContainer.classList.remove('collapsed');
+                toggleButton.classList.remove('collapsed');
+                toggleButton.classList.add('expanded');
+                toggleButton.innerHTML = '◀'; // Left arrow when expanded
+                toggleButton.title = 'Collapse UI Panel';
+            }
+        });
+        
+        return toggleButton;
+    }
+    
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+               window.innerWidth <= 768;
     }
 }
