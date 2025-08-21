@@ -241,6 +241,10 @@ class CollisionViewer {
     
     toggleViewMode() {
         this.viewMode = this.viewMode === 'surface' ? 'geometry' : 'surface';
+        
+        // Clear material caches since we're changing view modes
+        this.meshCreator.clearMaterialCaches();
+        
         this.createMesh();
         this.uiControls.updateViewModeButton();
     }

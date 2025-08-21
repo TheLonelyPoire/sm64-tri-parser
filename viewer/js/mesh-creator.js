@@ -4,16 +4,20 @@
  */
 
 import { ColorConfig } from './color-config.js';
+import { ShaderLoader } from './shader-loader.js';
 
 export class MeshCreator {
     constructor(viewer) {
         this.viewer = viewer;
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
-        this.hoveredTriangle = null;
-        this.hoveredTriangleMesh = null;
+        this.hoveredTriangleIndex = -1;
+        this.activeMaterials = []; // Track materials for shader updates
         this.isOrbiting = false;
         this.mouseEventsSetup = false;
+        
+        // Initialize shader loader
+        this.shaderLoader = new ShaderLoader();
     }
     
     setupMouseEvents() {
@@ -81,12 +85,13 @@ export class MeshCreator {
             // Change cursor to indicate clickable triangle
             this.viewer.renderer.domElement.style.cursor = 'pointer';
             
+            // Get the global triangle index for shader-based highlighting
+            const globalTriangleIndex = this.getGlobalTriangleIndex(mesh, faceIndex);
+            
             // Check if we're hovering over a different triangle
-            if (this.hoveredTriangle !== faceIndex || this.hoveredTriangleMesh !== mesh) {
-                this.resetHover();
-                this.hoveredTriangle = faceIndex;
-                this.hoveredTriangleMesh = mesh;
-                this.highlightTriangle(mesh, faceIndex);
+            if (this.hoveredTriangleIndex !== globalTriangleIndex) {
+                this.hoveredTriangleIndex = globalTriangleIndex;
+                this.updateShaderHighlight(globalTriangleIndex);
             }
         } else {
             // Reset cursor when not hovering over triangles
@@ -95,94 +100,42 @@ export class MeshCreator {
         }
     }
     
-    highlightTriangle(mesh, faceIndex) {
-        // Create a highlighted triangle mesh
-        const geometry = new THREE.BufferGeometry();
-        const originalGeometry = mesh.geometry;
-        
-        // Get the position attribute
-        const positions = originalGeometry.attributes.position.array;
-        const normals = originalGeometry.attributes.normal.array;
-        
-        // Extract the specific triangle's vertices (each triangle has 3 vertices * 3 coordinates)
-        const triangleStart = faceIndex * 9; // 3 vertices * 3 coordinates per vertex
-        const trianglePositions = positions.slice(triangleStart, triangleStart + 9);
-        const triangleNormals = normals.slice(triangleStart, triangleStart + 9);
-        
-        // Transform vertices to world coordinates if the mesh is positioned
-        if (mesh.parent && mesh.parent !== this.viewer.scene) {
-            // Get the world matrix of the mesh
-            mesh.updateMatrixWorld();
-            const worldMatrix = mesh.matrixWorld;
-            
-            // Transform each vertex position
-            for (let i = 0; i < trianglePositions.length; i += 3) {
-                const vertex = new THREE.Vector3(
-                    trianglePositions[i],
-                    trianglePositions[i + 1], 
-                    trianglePositions[i + 2]
-                );
-                vertex.applyMatrix4(worldMatrix);
-                trianglePositions[i] = vertex.x;
-                trianglePositions[i + 1] = vertex.y;
-                trianglePositions[i + 2] = vertex.z;
-            }
-            
-            // Transform normals (normals need special handling - use normal matrix)
-            const normalMatrix = new THREE.Matrix3().getNormalMatrix(worldMatrix);
-            for (let i = 0; i < triangleNormals.length; i += 3) {
-                const normal = new THREE.Vector3(
-                    triangleNormals[i],
-                    triangleNormals[i + 1],
-                    triangleNormals[i + 2]
-                );
-                normal.applyMatrix3(normalMatrix).normalize();
-                triangleNormals[i] = normal.x;
-                triangleNormals[i + 1] = normal.y;
-                triangleNormals[i + 2] = normal.z;
+    getGlobalTriangleIndex(mesh, faceIndex) {
+        // For shader-based meshes, use the triangle index attribute
+        if (mesh.geometry.attributes.triangleIndex) {
+            const triangleIndices = mesh.geometry.attributes.triangleIndex.array;
+            const vertexIndex = faceIndex * 3; // Each face has 3 vertices
+            if (vertexIndex < triangleIndices.length) {
+                return triangleIndices[vertexIndex];
             }
         }
-        
-        // Offset vertices slightly along the normal to prevent z-fighting
-        const offsetAmount = 0.5; // Small offset to prevent z-fighting
-        for (let i = 0; i < trianglePositions.length; i += 3) {
-            trianglePositions[i] += triangleNormals[i] * offsetAmount;
-            trianglePositions[i + 1] += triangleNormals[i + 1] * offsetAmount;
-            trianglePositions[i + 2] += triangleNormals[i + 2] * offsetAmount;
-        }
-        
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(trianglePositions, 3));
-        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(triangleNormals, 3));
-        
-        // Create highlighted material (lighter version of original)
-        const originalColor = new THREE.Color(mesh.material.color);
-        const highlightColor = originalColor.clone().multiplyScalar(1.5); // Brighter
-        
-        const highlightMaterial = new THREE.MeshLambertMaterial({
-            color: highlightColor,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.9,
-            depthTest: true,
-            depthWrite: false // Prevent depth writing to reduce z-fighting
+        return -1;
+    }
+    
+    updateShaderHighlight(triangleIndex) {
+        // Update all active materials with the new hovered triangle
+        this.activeMaterials.forEach(material => {
+            this.shaderLoader.updateMaterialHover(material, triangleIndex);
         });
-        
-        // Create the highlight mesh at world coordinates (no additional transforms needed)
-        this.highlightMesh = new THREE.Mesh(geometry, highlightMaterial);
-        
-        // Add to scene
-        this.viewer.scene.add(this.highlightMesh);
     }
     
     resetHover() {
-        if (this.highlightMesh) {
-            this.viewer.scene.remove(this.highlightMesh);
-            this.highlightMesh.geometry.dispose();
-            this.highlightMesh.material.dispose();
-            this.highlightMesh = null;
+        if (this.hoveredTriangleIndex !== -1) {
+            this.hoveredTriangleIndex = -1;
+            this.updateShaderHighlight(-1);
         }
-        this.hoveredTriangle = null;
-        this.hoveredTriangleMesh = null;
+    }
+    
+    // Clear material tracking and reset shader highlights
+    clearMaterialCaches() {
+        // Dispose of tracked materials
+        this.activeMaterials.forEach(material => {
+            material.dispose();
+        });
+        this.activeMaterials = [];
+        
+        // Reset any active hover
+        this.resetHover();
     }
     
     handleTriangleSelection() {
@@ -228,7 +181,22 @@ export class MeshCreator {
             }
         }
         
-        // Get the surface type or geometry type from the mesh name or userData
+        // For shader-based meshes, use the triangle index attribute to get the exact triangle
+        if (mesh.geometry.attributes.triangleIndex) {
+            const triangleIndices = mesh.geometry.attributes.triangleIndex.array;
+            const vertexIndex = faceIndex * 3; // Each face has 3 vertices
+            
+            if (vertexIndex < triangleIndices.length) {
+                const triangleIndex = triangleIndices[vertexIndex];
+                
+                // Return the triangle directly from the viewer's triangle array
+                if (triangleIndex >= 0 && triangleIndex < this.viewer.triangles.length) {
+                    return this.viewer.triangles[triangleIndex];
+                }
+            }
+        }
+        
+        // Fallback to legacy method for non-shader meshes (objects, etc.)
         let surfaceType = mesh.userData.surfaceType || mesh.userData.geometryType || 'UNKNOWN';
         
         // For surface view, find triangles with this surface type
@@ -352,98 +320,116 @@ export class MeshCreator {
         // Setup mouse events if not already done
         this.setupMouseEvents();
         
-        const geometryGroups = this.groupTrianglesBySurfaceType(triangles);
-        const meshGroup = new THREE.Group();
+        // Create a single geometry with all triangles
+        const geometry = new THREE.BufferGeometry();
+        const positions = [];
+        const normals = [];
+        const colors = [];
+        const triangleIndices = [];
         
-        for (const [surfaceType, triangleGroup] of Object.entries(geometryGroups)) {
-            if (triangleGroup.length === 0) continue;
+        triangles.forEach((triangle, triangleIndex) => {
+            // Add vertices for this triangle
+            positions.push(
+                triangle.vertex1.x, triangle.vertex1.y, triangle.vertex1.z,
+                triangle.vertex2.x, triangle.vertex2.y, triangle.vertex2.z,
+                triangle.vertex3.x, triangle.vertex3.y, triangle.vertex3.z
+            );
             
-            const geometry = new THREE.BufferGeometry();
-            const positions = [];
-            const normals = [];
+            // Calculate and add normals using SM64-style calculation
+            const normal = this.calculateTriangleNormalSM64Style(triangle);
+            normals.push(
+                normal.x, normal.y, normal.z,
+                normal.x, normal.y, normal.z,
+                normal.x, normal.y, normal.z
+            );
             
-            triangleGroup.forEach(triangle => {
-                // Add vertices for this triangle
-                positions.push(
-                    triangle.vertex1.x, triangle.vertex1.y, triangle.vertex1.z,
-                    triangle.vertex2.x, triangle.vertex2.y, triangle.vertex2.z,
-                    triangle.vertex3.x, triangle.vertex3.y, triangle.vertex3.z
-                );
-                
-                // Calculate and add normals using SM64-style calculation
-                const normal = this.calculateTriangleNormalSM64Style(triangle);
-                normals.push(
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z
-                );
-            });
+            // Get surface type color
+            const surfaceType = triangle.surface_type || 'DEFAULT';
+            const colorHex = ColorConfig.surfaceTypes[surfaceType] || ColorConfig.surfaceTypes.DEFAULT;
+            const color = new THREE.Color(colorHex);
             
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+            // Add colors for all 3 vertices of this triangle
+            colors.push(
+                color.r, color.g, color.b,
+                color.r, color.g, color.b,
+                color.r, color.g, color.b
+            );
             
-            const material = new THREE.MeshLambertMaterial({
-                color: ColorConfig.surfaceTypes[surfaceType] || ColorConfig.surfaceTypes.DEFAULT,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.8
-            });
-            
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.userData.surfaceType = surfaceType; // Store for triangle selection
-            meshGroup.add(mesh);
-        }
+            // Add triangle index for all 3 vertices of this triangle
+            triangleIndices.push(
+                triangleIndex, triangleIndex, triangleIndex
+            );
+        });
         
-        return meshGroup;
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        geometry.setAttribute('baseColor', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('triangleIndex', new THREE.Float32BufferAttribute(triangleIndices, 1));
+        
+        // Get shader material and track it
+        const material = this.shaderLoader.getCollisionMaterial();
+        this.activeMaterials.push(material);
+        
+        const mesh = new THREE.Mesh(geometry, material);
+        return mesh;
     }
     
     createGeometryTypeMesh(triangles, vertices) {
         // Setup mouse events if not already done
         this.setupMouseEvents();
         
-        const geometryGroups = this.groupTrianglesByGeometryType(triangles);
-        const meshGroup = new THREE.Group();
+        // Create a single geometry with all triangles
+        const geometry = new THREE.BufferGeometry();
+        const positions = [];
+        const normals = [];
+        const colors = [];
+        const triangleIndices = [];
         
-        for (const [geometryType, triangleGroup] of Object.entries(geometryGroups)) {
-            if (triangleGroup.length === 0) continue;
+        triangles.forEach((triangle, triangleIndex) => {
+            // Add vertices for this triangle
+            positions.push(
+                triangle.vertex1.x, triangle.vertex1.y, triangle.vertex1.z,
+                triangle.vertex2.x, triangle.vertex2.y, triangle.vertex2.z,
+                triangle.vertex3.x, triangle.vertex3.y, triangle.vertex3.z
+            );
             
-            const geometry = new THREE.BufferGeometry();
-            const positions = [];
-            const normals = [];
+            // Calculate and add normals using SM64-style calculation
+            const normal = this.calculateTriangleNormalSM64Style(triangle);
+            normals.push(
+                normal.x, normal.y, normal.z,
+                normal.x, normal.y, normal.z,
+                normal.x, normal.y, normal.z
+            );
             
-            triangleGroup.forEach(triangle => {
-                // Add vertices for this triangle
-                positions.push(
-                    triangle.vertex1.x, triangle.vertex1.y, triangle.vertex1.z,
-                    triangle.vertex2.x, triangle.vertex2.y, triangle.vertex2.z,
-                    triangle.vertex3.x, triangle.vertex3.y, triangle.vertex3.z
-                );
-                
-                // Calculate and add normals using SM64-style calculation
-                const normal = this.calculateTriangleNormalSM64Style(triangle);
-                normals.push(
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z,
-                    normal.x, normal.y, normal.z
-                );
-            });
+            // Classify geometry type and get color
+            const geometryType = this.classifyTriangleGeometry(normal);
+            const colorHex = ColorConfig.geometryTypes[geometryType] || ColorConfig.geometryTypes.floor;
+            const color = new THREE.Color(colorHex);
             
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+            // Add colors for all 3 vertices of this triangle
+            colors.push(
+                color.r, color.g, color.b,
+                color.r, color.g, color.b,
+                color.r, color.g, color.b
+            );
             
-            const material = new THREE.MeshLambertMaterial({
-                color: ColorConfig.geometryTypes[geometryType] || ColorConfig.geometryTypes.floor,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.8
-            });
-            
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.userData.geometryType = geometryType; // Store for triangle selection
-            meshGroup.add(mesh);
-        }
+            // Add triangle index for all 3 vertices of this triangle
+            triangleIndices.push(
+                triangleIndex, triangleIndex, triangleIndex
+            );
+        });
         
-        return meshGroup;
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        geometry.setAttribute('baseColor', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('triangleIndex', new THREE.Float32BufferAttribute(triangleIndices, 1));
+        
+        // Get shader material and track it
+        const material = this.shaderLoader.getCollisionMaterial();
+        this.activeMaterials.push(material);
+        
+        const mesh = new THREE.Mesh(geometry, material);
+        return mesh;
     }
     
     groupTrianglesBySurfaceType(triangles) {
