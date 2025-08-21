@@ -149,7 +149,7 @@ export class LevelLoader {
         return this.collisionFiles;
     }
 
-    // Load objects for a specific level
+    // Load objects for a specific level, filtered by current area
     async loadLevelObjects(levelInfo, version = 'US') {
         const objects = [];
         
@@ -157,7 +157,9 @@ export class LevelLoader {
             return objects;
         }
 
-        console.log(`Loading objects for ${levelInfo.levelName}...`);
+        // Get current area from fileInfo for filtering
+        const currentArea = levelInfo.areaNumber ? parseInt(levelInfo.areaNumber) : null;
+        console.log(`Loading objects for ${levelInfo.levelName}${currentArea ? ` (Area ${currentArea})` : ''}...`);
 
         try {
             // Load script.c to get object positions
@@ -167,6 +169,12 @@ export class LevelLoader {
 
             // Load each object's collision data
             for (const objectDef of levelInfo.objects) {
+                // Filter objects by current area if area filtering is enabled
+                if (currentArea && objectDef.area && objectDef.area !== currentArea) {
+                    console.log(`Skipping ${objectDef.name} (area ${objectDef.area}, current area is ${currentArea})`);
+                    continue;
+                }
+                
                 try {
                     const objectPath = `${this.levelsPath}/${levelInfo.levelName}/${objectDef.collision_file}`;
                     const objectContent = await this.loadFile(objectPath);

@@ -13,6 +13,12 @@ levels:
       - id: "chain_chomp_gate"
         name: "Chain Chomp Gate"
         collision_file: "chain_chomp_gate/collision.inc.c"
+      - id: "grate_door"
+        name: "Grate Door"
+        collision_file: "grate_door/collision.inc.c"
+      - id: "seesaw_platform"
+        name: "Seesaw Platform"
+        collision_file: "seesaw_platform/collision.inc.c"
 
   wf:
     name: "Whomp's Fortress"
@@ -21,18 +27,45 @@ levels:
         name: "Main Area"
         collision_file: "areas/1/collision.inc.c"
     objects:
-      - id: "small_bomp"
-        name: "Small Bomp"
-        collision_file: "small_bomp/collision.inc.c"
+      - id: "beta_extending_platform"
+        name: "Beta Extending Platform"
+        collision_file: "beta_extending_platform/collision.inc.c"
+      - id: "breakable_wall_left"
+        name: "Breakable Wall Left"
+        collision_file: "breakable_wall_left/collision.inc.c"
+      - id: "breakable_wall_right"
+        name: "Breakable Wall Right"
+        collision_file: "breakable_wall_right/collision.inc.c"
+      - id: "extending_platform"
+        name: "Extending Platform"
+        collision_file: "extending_platform/collision.inc.c"
+      - id: "kickable_board"
+        name: "Kickable Board"
+        collision_file: "kickable_board/collision.inc.c"
       - id: "large_bomp"
         name: "Large Bomp"
         collision_file: "large_bomp/collision.inc.c"
-      - id: "sliding_platform"
-        name: "Sliding Platform"
-        collision_file: "sliding_platform/collision.inc.c"
       - id: "rotating_platform"
         name: "Rotating Platform"
         collision_file: "rotating_platform/collision.inc.c"
+      - id: "rotating_wooden_platform"
+        name: "Rotating Wooden Platform"
+        collision_file: "rotating_wooden_platform/collision.inc.c"
+      - id: "sliding_platform"
+        name: "Sliding Platform"
+        collision_file: "sliding_platform/collision.inc.c"
+      - id: "small_bomp"
+        name: "Small Bomp"
+        collision_file: "small_bomp/collision.inc.c"
+      - id: "tower_door"
+        name: "Tower Door"
+        collision_file: "tower_door/collision.inc.c"
+      - id: "tumbling_bridge_far"
+        name: "Tumbling Bridge Far"
+        collision_file: "tumbling_bridge_far/collision.inc.c"
+      - id: "tumbling_bridge_near"
+        name: "Tumbling Bridge Near"
+        collision_file: "tumbling_bridge_near/collision.inc.c"
 
   jrb:
     name: "Jolly Roger Bay"
@@ -44,12 +77,34 @@ levels:
         name: "Sunken Ship"
         collision_file: "areas/2/collision.inc.c"
     objects:
+      - id: "falling_pillar"
+        name: "Falling Pillar"
+        collision_file: "falling_pillar/collision.inc.c"
+        area: 1
+      - id: "falling_pillar_base"
+        name: "Falling Pillar Base"
+        collision_file: "falling_pillar_base/collision.inc.c"
+        area: 1
       - id: "floating_platform"
         name: "Floating Platform"
         collision_file: "floating_platform/collision.inc.c"
-      - id: "floating_box"
-        name: "Floating Box"
-        collision_file: "floating_box/collision.inc.c"
+        area: 1
+      - id: "rock"
+        name: "Rock"
+        collision_file: "rock/collision.inc.c"
+        area: 1
+      - id: "sliding_box"
+        name: "Sliding Box"
+        collision_file: "sliding_box/collision.inc.c"
+        area: 1
+      - id: "unused_lid"
+        name: "Unused Lid"
+        collision_file: "unused_lid/collision.inc.c"
+        area: 1
+      - id: "wooden_ship"
+        name: "Wooden Ship"
+        collision_file: "wooden_ship/collision.inc.c"
+        area: 1
 
   ccm:
     name: "Cool, Cool Mountain"
@@ -64,6 +119,15 @@ levels:
       - id: "ropeway_lift"
         name: "Ropeway Lift"
         collision_file: "ropeway_lift/collision.inc.c"
+        area: 1
+      - id: "snowman_base"
+        name: "Snowman Base"
+        collision_file: "snowman_base/collision.inc.c"
+        area: 1
+      - id: "snowman_head"
+        name: "Snowman Head"
+        collision_file: "snowman_head/collision.inc.c"
+        area: 1
 
   bbh:
     name: "Big Boo's Haunt"
@@ -72,24 +136,30 @@ levels:
         name: "Main Area"
         collision_file: "areas/1/collision.inc.c"
     objects:
+      - id: "coffin"
+        name: "Coffin"
+        collision_file: "coffin/collision.inc.c"
+      - id: "merry_go_round"
+        name: "Merry Go Round"
+        collision_file: "merry_go_round/collision.inc.c"
+      - id: "mesh_elevator"
+        name: "Mesh Elevator"
+        collision_file: "mesh_elevator/collision.inc.c"
+      - id: "moving_bookshelf"
+        name: "Moving Bookshelf"
+        collision_file: "moving_bookshelf/collision.inc.c"
       - id: "staircase_step"
         name: "Staircase Step"
         collision_file: "staircase_step/collision.inc.c"
       - id: "tilting_trap_platform"
         name: "Tilting Trap Platform"
         collision_file: "tilting_trap_platform/collision.inc.c"
-      - id: "mesh_elevator"
-        name: "Mesh Elevator"
-        collision_file: "mesh_elevator/collision.inc.c"
-      - id: "merry_go_round"
-        name: "Merry Go Round"
-        collision_file: "merry_go_round/collision.inc.c"
-      - id: "coffin"
-        name: "Coffin"
-        collision_file: "coffin/collision.inc.c"
-      - id: "moving_bookshelf"
-        name: "Moving Bookshelf"
-        collision_file: "moving_bookshelf/collision.inc.c"
+      - id: "tumbling_platform_far"
+        name: "Tumbling Platform Far"
+        collision_file: "tumbling_platform_far/collision.inc.c"
+      - id: "tumbling_platform_near"
+        name: "Tumbling Platform Near"
+        collision_file: "tumbling_platform_near/collision.inc.c"
 
   hmc:
     name: "Hazy Maze Cave"
@@ -98,12 +168,24 @@ levels:
         name: "Main Area"
         collision_file: "areas/1/collision.inc.c"
     objects:
-      - id: "elevator"
-        name: "Elevator"
-        collision_file: "elevator/collision.inc.c"
-      - id: "controllable_platform"
-        name: "Controllable Platform"
-        collision_file: "controllable_platform/collision.inc.c"
+      - id: "arrow_platform"
+        name: "Arrow Platform"
+        collision_file: "arrow_platform/collision.inc.c"
+      - id: "arrow_platform_button"
+        name: "Arrow Platform Button"
+        collision_file: "arrow_platform_button/collision.inc.c"
+      - id: "elevator_platform"
+        name: "Elevator Platform"
+        collision_file: "elevator_platform/collision.inc.c"
+      - id: "rolling_rock"
+        name: "Rolling Rock"
+        collision_file: "rolling_rock/collision.inc.c"
+      - id: "rolling_rock_fragment_1"
+        name: "Rolling Rock Fragment 1"
+        collision_file: "rolling_rock_fragment_1/collision.inc.c"
+      - id: "rolling_rock_fragment_2"
+        name: "Rolling Rock Fragment 2"
+        collision_file: "rolling_rock_fragment_2/collision.inc.c"
 
   lll:
     name: "Lethal Lava Land"
@@ -115,21 +197,66 @@ levels:
         name: "Volcano"
         collision_file: "areas/2/collision.inc.c"
     objects:
+      - id: "collapsing_wooden_platform"
+        name: "Collapsing Wooden Platform"
+        collision_file: "collapsing_wooden_platform/collision.inc.c"
+        area: 1
+      - id: "drawbridge_part"
+        name: "Drawbridge Part"
+        collision_file: "drawbridge_part/collision.inc.c"
+        area: 1
+      - id: "long_wooden_bridge"
+        name: "Long Wooden Bridge"
+        collision_file: "long_wooden_bridge/collision.inc.c"
+        area: 1
       - id: "moving_octagonal_mesh_platform"
         name: "Moving Octagonal Platform"
         collision_file: "moving_octagonal_mesh_platform/collision.inc.c"
-      - id: "sinking_rectangular_platform"
-        name: "Sinking Rectangular Platform"
-        collision_file: "sinking_rectangular_platform/collision.inc.c"
-      - id: "sinking_square_platform"
-        name: "Sinking Square Platform"
-        collision_file: "sinking_square_platform/collision.inc.c"
-      - id: "tilting_square_platform"
-        name: "Tilting Square Platform"
-        collision_file: "tilting_square_platform/collision.inc.c"
+        area: 1
       - id: "puzzle_piece"
         name: "Puzzle Piece"
         collision_file: "puzzle_piece/collision.inc.c"
+        area: 1
+      - id: "rolling_log"
+        name: "Rolling Log"
+        collision_file: "rolling_log/collision.inc.c"
+        area: 1
+      - id: "rotating_block_fire_bars"
+        name: "Rotating Block Fire Bars"
+        collision_file: "rotating_block_fire_bars/collision.inc.c"
+        area: 1
+      - id: "rotating_hexagonal_ring"
+        name: "Rotating Hexagonal Ring"
+        collision_file: "rotating_hexagonal_ring/collision.inc.c"
+        area: 1
+      - id: "sinking_rectangular_platform"
+        name: "Sinking Rectangular Platform"
+        collision_file: "sinking_rectangular_platform/collision.inc.c"
+        area: 1
+      - id: "sinking_rock_block"
+        name: "Sinking Rock Block"
+        collision_file: "sinking_rock_block/collision.inc.c"
+        area: 1
+      - id: "sinking_square_platform"
+        name: "Sinking Square Platform"
+        collision_file: "sinking_square_platform/collision.inc.c"
+        area: 1
+      - id: "tilting_square_platform"
+        name: "Tilting Square Platform"
+        collision_file: "tilting_square_platform/collision.inc.c"
+        area: 1
+      - id: "volcano_falling_trap"
+        name: "Volcano Falling Trap"
+        collision_file: "volcano_falling_trap/collision.inc.c"
+        area: 2
+      - id: "wooden_float_large"
+        name: "Wooden Float Large"
+        collision_file: "wooden_float_large/collision.inc.c"
+        area: 1
+      - id: "wooden_float_small"
+        name: "Wooden Float Small"
+        collision_file: "wooden_float_small/collision.inc.c"
+        area: 1
 
   ssl:
     name: "Shifting Sand Land"
@@ -144,18 +271,34 @@ levels:
         name: "Pyramid Eyerok"
         collision_file: "areas/3/collision.inc.c"
     objects:
+      - id: "eyerok_col"
+        name: "Eyerok Collision"
+        collision_file: "eyerok_col/collision.inc.c"
+        area: 3
       - id: "grindel"
         name: "Grindel"
         collision_file: "grindel/collision.inc.c"
-      - id: "spindel"
-        name: "Spindel"
-        collision_file: "spindel/collision.inc.c"
+        area: 2
       - id: "moving_pyramid_wall"
         name: "Moving Pyramid Wall"
         collision_file: "moving_pyramid_wall/collision.inc.c"
+        area: 2
       - id: "pyramid_elevator"
         name: "Pyramid Elevator"
         collision_file: "pyramid_elevator/collision.inc.c"
+        area: 2
+      - id: "pyramid_top"
+        name: "Pyramid Top"
+        collision_file: "pyramid_top/collision.inc.c"
+        area: 1
+      - id: "spindel"
+        name: "Spindel"
+        collision_file: "spindel/collision.inc.c"
+        area: 2
+      - id: "tox_box"
+        name: "Tox Box"
+        collision_file: "tox_box/collision.inc.c"
+        area: 1
 
   ddd:
     name: "Dire Dire Docks"
@@ -167,12 +310,18 @@ levels:
         name: "Submarine Dock"
         collision_file: "areas/2/collision.inc.c"
     objects:
+      - id: "pole"
+        name: "Pole"
+        collision_file: "pole/collision.inc.c"
+        area: 2
+      - id: "sub_door"
+        name: "Submarine Door"
+        collision_file: "sub_door/collision.inc.c"
+        area: 2
       - id: "submarine"
         name: "Submarine"
         collision_file: "submarine/collision.inc.c"
-      - id: "moving_pole"
-        name: "Moving Pole"
-        collision_file: "moving_pole/collision.inc.c"
+        area: 2
 
   sl:
     name: "Snowman's Land"
@@ -195,15 +344,38 @@ levels:
         name: "Downtown"
         collision_file: "areas/2/collision.inc.c"
     objects:
-      - id: "square_floating_platform"
-        name: "Square Floating Platform"
-        collision_file: "square_floating_platform/collision.inc.c"
       - id: "arrow_lift"
         name: "Arrow Lift"
         collision_file: "arrow_lift/collision.inc.c"
-      - id: "express_elevator_platform"
-        name: "Express Elevator Platform"
-        collision_file: "express_elevator_platform/collision.inc.c"
+        area: 1
+      - id: "double_arrows"
+        name: "Double Arrows"
+        collision_file: "double_arrows/collision.inc.c"
+        area: 1
+      - id: "express_elevator"
+        name: "Express Elevator"
+        collision_file: "express_elevator/collision.inc.c"
+        area: 1
+      - id: "hidden_platform"
+        name: "Hidden Platform"
+        collision_file: "hidden_platform/collision.inc.c"
+        area: 1
+      - id: "rectangular_floating_platform"
+        name: "Rectangular Floating Platform"
+        collision_file: "rectangular_floating_platform/collision.inc.c"
+        area: 1
+      - id: "rotating_platform"
+        name: "Rotating Platform"
+        collision_file: "rotating_platform/collision.inc.c"
+        area: 1
+      - id: "square_floating_platform"
+        name: "Square Floating Platform"
+        collision_file: "square_floating_platform/collision.inc.c"
+        area: 1
+      - id: "water_level_diamond"
+        name: "Water Level Diamond"
+        collision_file: "water_level_diamond/collision.inc.c"
+        area: 1
 
   ttm:
     name: "Tall, Tall Mountain"
@@ -221,12 +393,34 @@ levels:
         name: "Slide Pt. 3"
         collision_file: "areas/4/collision.inc.c"
     objects:
+      - id: "blue_smiley"
+        name: "Blue Smiley"
+        collision_file: "blue_smiley/collision.inc.c"
+        area: 2
+      - id: "moon_smiley"
+        name: "Moon Smiley"
+        collision_file: "moon_smiley/collision.inc.c"
+        area: 2
       - id: "rolling_log"
         name: "Rolling Log"
         collision_file: "rolling_log/collision.inc.c"
-      - id: "mushroom_1up"
-        name: "1-Up Mushroom"
-        collision_file: "mushroom_1up/collision.inc.c"
+        area: 1
+      - id: "slide_exit_podium"
+        name: "Slide Exit Podium"
+        collision_file: "slide_exit_podium/collision.inc.c"
+        area: 4
+      - id: "star_cage"
+        name: "Star Cage"
+        collision_file: "star_cage/collision.inc.c"
+        area: 1
+      - id: "star_smiley"
+        name: "Star Smiley"
+        collision_file: "star_smiley/collision.inc.c"
+        area: 2
+      - id: "yellow_smiley"
+        name: "Yellow Smiley"
+        collision_file: "yellow_smiley/collision.inc.c"
+        area: 2
 
   thi:
     name: "Tiny-Huge Island"
@@ -240,10 +434,7 @@ levels:
       - id: "3"
         name: "Wiggler's Cave"
         collision_file: "areas/3/collision.inc.c"
-    objects:
-      - id: "huge_island_top"
-        name: "Huge Island Top"
-        collision_file: "huge_island_top/collision.inc.c"
+    objects: []
 
   ttc:
     name: "Tick Tock Clock"
