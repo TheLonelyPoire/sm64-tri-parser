@@ -109,6 +109,48 @@ export class MeshCreator {
         const trianglePositions = positions.slice(triangleStart, triangleStart + 9);
         const triangleNormals = normals.slice(triangleStart, triangleStart + 9);
         
+        // Transform vertices to world coordinates if the mesh is positioned
+        if (mesh.parent && mesh.parent !== this.viewer.scene) {
+            // Get the world matrix of the mesh
+            mesh.updateMatrixWorld();
+            const worldMatrix = mesh.matrixWorld;
+            
+            // Transform each vertex position
+            for (let i = 0; i < trianglePositions.length; i += 3) {
+                const vertex = new THREE.Vector3(
+                    trianglePositions[i],
+                    trianglePositions[i + 1], 
+                    trianglePositions[i + 2]
+                );
+                vertex.applyMatrix4(worldMatrix);
+                trianglePositions[i] = vertex.x;
+                trianglePositions[i + 1] = vertex.y;
+                trianglePositions[i + 2] = vertex.z;
+            }
+            
+            // Transform normals (normals need special handling - use normal matrix)
+            const normalMatrix = new THREE.Matrix3().getNormalMatrix(worldMatrix);
+            for (let i = 0; i < triangleNormals.length; i += 3) {
+                const normal = new THREE.Vector3(
+                    triangleNormals[i],
+                    triangleNormals[i + 1],
+                    triangleNormals[i + 2]
+                );
+                normal.applyMatrix3(normalMatrix).normalize();
+                triangleNormals[i] = normal.x;
+                triangleNormals[i + 1] = normal.y;
+                triangleNormals[i + 2] = normal.z;
+            }
+        }
+        
+        // Offset vertices slightly along the normal to prevent z-fighting
+        const offsetAmount = 0.5; // Small offset to prevent z-fighting
+        for (let i = 0; i < trianglePositions.length; i += 3) {
+            trianglePositions[i] += triangleNormals[i] * offsetAmount;
+            trianglePositions[i + 1] += triangleNormals[i + 1] * offsetAmount;
+            trianglePositions[i + 2] += triangleNormals[i + 2] * offsetAmount;
+        }
+        
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(trianglePositions, 3));
         geometry.setAttribute('normal', new THREE.Float32BufferAttribute(triangleNormals, 3));
         
@@ -120,14 +162,13 @@ export class MeshCreator {
             color: highlightColor,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.9
+            opacity: 0.9,
+            depthTest: true,
+            depthWrite: false // Prevent depth writing to reduce z-fighting
         });
         
-        // Create the highlight mesh
+        // Create the highlight mesh at world coordinates (no additional transforms needed)
         this.highlightMesh = new THREE.Mesh(geometry, highlightMaterial);
-        this.highlightMesh.position.copy(mesh.position);
-        this.highlightMesh.rotation.copy(mesh.rotation);
-        this.highlightMesh.scale.copy(mesh.scale);
         
         // Add to scene
         this.viewer.scene.add(this.highlightMesh);
@@ -165,6 +206,28 @@ export class MeshCreator {
     }
     
     getTriangleDataFromIntersection(mesh, faceIndex) {
+        // Check if this mesh represents object data
+        if (mesh.userData.objectTriangles && mesh.userData.objectPosition) {
+            // For objects, get the triangle directly from stored object data
+            const objectTriangles = mesh.userData.objectTriangles;
+            if (faceIndex < objectTriangles.length) {
+                const originalTriangle = objectTriangles[faceIndex];
+                
+                // Create a transformed triangle with world coordinates for display
+                const position = mesh.userData.objectPosition;
+                const transformedTriangle = {
+                    surface_type: originalTriangle.surface_type,
+                    vertex1: this.transformVertex(originalTriangle.vertex1, position),
+                    vertex2: this.transformVertex(originalTriangle.vertex2, position),
+                    vertex3: this.transformVertex(originalTriangle.vertex3, position),
+                    isObject: true,
+                    objectName: mesh.userData.objectName || 'Unknown Object'
+                };
+                
+                return transformedTriangle;
+            }
+        }
+        
         // Get the surface type or geometry type from the mesh name or userData
         let surfaceType = mesh.userData.surfaceType || mesh.userData.geometryType || 'UNKNOWN';
         
@@ -173,7 +236,7 @@ export class MeshCreator {
             const trianglesOfType = this.viewer.triangles.filter(tri => 
                 (tri.surface_type || 'DEFAULT') === surfaceType
             );
-            if (trianglesOfType[faceIndex]) {
+            if (faceIndex < trianglesOfType.length) {
                 return trianglesOfType[faceIndex];
             }
         } else {
@@ -184,12 +247,34 @@ export class MeshCreator {
                 const geometryType = this.classifyTriangleGeometry(normal);
                 return geometryType === surfaceType;
             });
-            if (trianglesOfType[faceIndex]) {
+            if (faceIndex < trianglesOfType.length) {
                 return trianglesOfType[faceIndex];
             }
         }
         
         return null;
+    }
+
+    // Helper function to transform a vertex by object position and rotation
+    transformVertex(vertex, objectPosition) {
+        // Create transformation matrix
+        const matrix = new THREE.Matrix4();
+        matrix.makeRotationFromEuler(new THREE.Euler(
+            THREE.MathUtils.degToRad(objectPosition.angleX),
+            THREE.MathUtils.degToRad(objectPosition.angleY),
+            THREE.MathUtils.degToRad(objectPosition.angleZ)
+        ));
+        matrix.setPosition(objectPosition.x, objectPosition.y, objectPosition.z);
+        
+        // Transform vertex
+        const vec = new THREE.Vector3(vertex.x, vertex.y, vertex.z);
+        vec.applyMatrix4(matrix);
+        
+        return {
+            x: Math.round(vec.x * 100) / 100, // Round for cleaner display
+            y: Math.round(vec.y * 100) / 100,
+            z: Math.round(vec.z * 100) / 100
+        };
     }
     
     showTriangleInfo(triangle, point) {
@@ -214,7 +299,7 @@ export class MeshCreator {
             font-family: 'Courier New', monospace;
             font-size: 14px;
             z-index: 2000;
-            max-width: 400px;
+            max-width: 500px;
             border: 2px solid #4CAF50;
         `;
         
@@ -223,11 +308,26 @@ export class MeshCreator {
         const normalTrue = this.calculateTriangleNormal(triangle);
         const geometryType = this.classifyTriangleGeometry(normalSM64);
         
+        let title = 'Triangle Information';
+        let extraInfo = '';
+        
+        if (triangle.isObject) {
+            title = `Object Triangle: ${triangle.objectName}`;
+            extraInfo = `
+                <div style="background: rgba(76, 175, 80, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 10px;">
+                    <strong style="color: #4CAF50;">📦 Object Information</strong><br>
+                    This triangle belongs to a positioned object.<br>
+                    Coordinates shown are world positions.
+                </div>
+            `;
+        }
+        
         infoPanel.innerHTML = `
-            <h3 style="margin: 0 0 15px 0; color: #4CAF50;">Triangle Information</h3>
+            <h3 style="margin: 0 0 15px 0; color: #4CAF50;">${title}</h3>
+            ${extraInfo}
             <strong>Surface Type:</strong> ${surfaceType.replace(/_/g, ' ')}<br>
             <strong>Geometry Type:</strong> ${geometryType.charAt(0).toUpperCase() + geometryType.slice(1)}<br><br>
-            <strong>Vertices:</strong><br>
+            <strong>Vertices ${triangle.isObject ? '(World Coordinates)' : ''}:</strong><br>
             V1: (${triangle.vertex1.x}, ${triangle.vertex1.y}, ${triangle.vertex1.z})<br>
             V2: (${triangle.vertex2.x}, ${triangle.vertex2.y}, ${triangle.vertex2.z})<br>
             V3: (${triangle.vertex3.x}, ${triangle.vertex3.y}, ${triangle.vertex3.z})<br><br>
@@ -240,9 +340,9 @@ export class MeshCreator {
             <strong>Normal Y:</strong> ${normalTrue.y.toFixed(10)}<br>
             <strong>Normal Z:</strong> ${normalTrue.z.toFixed(10)}<br><br>
             <strong>Clicked Point:</strong> (${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)})<br><br>
-                        <button onclick="document.getElementById('triangle-info').remove()" 
-                    style="background: #4CAF50; color: white; border: none; padding: 8px 15px; 
-                           border-radius: 4px; cursor: pointer; font-size: 12px;">Close</button>
+            <button onclick="document.getElementById('triangle-info').remove()" 
+                style="background: #4CAF50; color: white; border: none; padding: 8px 15px; 
+                       border-radius: 4px; cursor: pointer; font-size: 12px;">Close</button>
         `;
         
         document.body.appendChild(infoPanel);

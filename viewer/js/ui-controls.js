@@ -355,14 +355,34 @@ export class UIControls {
     updateStats() {
         const vertexCount = this.viewer.vertices.length;
         const triangleCount = this.viewer.triangles.length;
+        const objectCount = this.viewer.objects ? this.viewer.objects.length : 0;
+        
+        // Calculate object statistics
+        let objectVertices = 0;
+        let objectTriangles = 0;
+        if (this.viewer.objects) {
+            this.viewer.objects.forEach(obj => {
+                objectVertices += obj.vertices.length;
+                objectTriangles += obj.triangles.length;
+            });
+        }
         
         let statsHTML = `
             <div style="margin-bottom: 10px;">
-                <strong>Statistics:</strong><br>
+                <strong>Level Statistics:</strong><br>
                 Vertices: ${vertexCount.toLocaleString()}<br>
                 Triangles: ${triangleCount.toLocaleString()}
-            </div>
         `;
+        
+        if (objectCount > 0) {
+            statsHTML += `<br><strong>Objects:</strong> ${objectCount}<br>
+                Object Vertices: ${objectVertices.toLocaleString()}<br>
+                Object Triangles: ${objectTriangles.toLocaleString()}<br>
+                <strong>Total Vertices:</strong> ${(vertexCount + objectVertices).toLocaleString()}<br>
+                <strong>Total Triangles:</strong> ${(triangleCount + objectTriangles).toLocaleString()}`;
+        }
+        
+        statsHTML += '</div>';
         
         if (this.viewer.viewMode === 'surface') {
             const surfaceStats = this.viewer.geometryClassifier.getSurfaceTypeStats(this.viewer.triangles);
@@ -481,8 +501,18 @@ export class UIControls {
             const triangleData = this.viewer.fileHandler.parseCollisionFile(fileContent, selectedVersion);
             console.log('Parsed triangle data:', triangleData);
 
+            // Load objects for this level
+            const objects = await this.levelLoader.loadLevelObjects(fileInfo, selectedVersion);
+            console.log(`Loaded ${objects.length} objects for this level`);
+
             if (triangleData && (triangleData.triangles.length > 0 || triangleData.vertices.length > 0)) {
-                this.viewer.loadCollisionData(triangleData, preserveCamera);
+                // Combine level data with objects
+                const levelData = {
+                    ...triangleData,
+                    objects: objects
+                };
+                
+                this.viewer.loadCollisionData(levelData, preserveCamera);
                 const versionText = hasVersions ? ` (${selectedVersion} Version)` : '';
                 console.log(`Successfully loaded ${fileInfo.displayName}${versionText}${preserveCamera ? ' (camera preserved)' : ''}`);
             } else {

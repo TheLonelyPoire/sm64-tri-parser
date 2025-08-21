@@ -18,6 +18,7 @@ class CollisionViewer {
         this.viewMode = 'surface';
         this.triangles = [];
         this.vertices = [];
+        this.objects = [];
         
         this.meshCreator = new MeshCreator(this);
         this.geometryClassifier = new GeometryClassifier();
@@ -114,8 +115,9 @@ class CollisionViewer {
         
         this.triangles = triangleData.triangles || [];
         this.vertices = triangleData.vertices || [];
+        this.objects = triangleData.objects || [];
         
-        console.log(`Loaded ${this.vertices.length} vertices and ${this.triangles.length} triangles`);
+        console.log(`Loaded ${this.vertices.length} vertices, ${this.triangles.length} triangles, and ${this.objects.length} objects`);
         
         this.createMesh();
         this.uiControls.updateStats();
@@ -146,15 +148,93 @@ class CollisionViewer {
             this.scene.remove(this.collisionMesh);
         }
         
+        // Create main level mesh
+        let mainMesh;
         if (this.viewMode === 'surface') {
-            this.collisionMesh = this.meshCreator.createSurfaceTypeMesh(this.triangles, this.vertices);
+            mainMesh = this.meshCreator.createSurfaceTypeMesh(this.triangles, this.vertices);
         } else {
-            this.collisionMesh = this.meshCreator.createGeometryTypeMesh(this.triangles, this.vertices);
+            mainMesh = this.meshCreator.createGeometryTypeMesh(this.triangles, this.vertices);
         }
         
-        if (this.collisionMesh) {
-            this.collisionMesh.castShadow = true;
-            this.collisionMesh.receiveShadow = true;
+        // Create a group to hold both level and objects
+        this.collisionMesh = new THREE.Group();
+        
+        if (mainMesh) {
+            mainMesh.castShadow = true;
+            mainMesh.receiveShadow = true;
+            this.collisionMesh.add(mainMesh);
+        }
+        
+        // Add objects at their positions
+        if (this.objects && this.objects.length > 0) {
+            console.log(`Adding ${this.objects.length} objects to scene`);
+            
+            for (const object of this.objects) {
+                let objectMesh;
+                if (this.viewMode === 'surface') {
+                    objectMesh = this.meshCreator.createSurfaceTypeMesh(object.triangles, object.vertices);
+                } else {
+                    objectMesh = this.meshCreator.createGeometryTypeMesh(object.triangles, object.vertices);
+                }
+                
+                if (objectMesh) {
+                    // Position the object
+                    objectMesh.position.set(object.position.x, object.position.y, object.position.z);
+                    
+                    // Apply rotation (convert degrees to radians)
+                    objectMesh.rotation.set(
+                        THREE.MathUtils.degToRad(object.position.angleX),
+                        THREE.MathUtils.degToRad(object.position.angleY),
+                        THREE.MathUtils.degToRad(object.position.angleZ)
+                    );
+                    
+                    objectMesh.castShadow = true;
+                    objectMesh.receiveShadow = true;
+                    
+                    // Store object data in mesh userData for triangle selection
+                    objectMesh.traverse((child) => {
+                        if (child.isMesh) {
+                            child.userData.objectTriangles = object.triangles;
+                            child.userData.objectPosition = object.position;
+                            child.userData.objectName = object.name;
+                        }
+                    });
+                    
+                    // Add some visual distinction (slightly different material properties)
+                    if (objectMesh.material) {
+                        if (Array.isArray(objectMesh.material)) {
+                            objectMesh.material.forEach(mat => {
+                                if (mat.emissive) {
+                                    mat.emissive.setRGB(0.05, 0.05, 0.05); // Slight glow
+                                }
+                            });
+                        } else if (objectMesh.material.emissive) {
+                            objectMesh.material.emissive.setRGB(0.05, 0.05, 0.05);
+                        }
+                    }
+                    
+                    // Handle child meshes for groups
+                    objectMesh.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(mat => {
+                                    if (mat.emissive) {
+                                        mat.emissive.setRGB(0.05, 0.05, 0.05);
+                                    }
+                                });
+                            } else if (child.material.emissive) {
+                                child.material.emissive.setRGB(0.05, 0.05, 0.05);
+                            }
+                        }
+                    });
+                    
+                    this.collisionMesh.add(objectMesh);
+                    console.log(`Added ${object.name} at (${object.position.x}, ${object.position.y}, ${object.position.z})`);
+                }
+            }
+        }
+        
+        if (this.collisionMesh.children.length > 0) {
             this.scene.add(this.collisionMesh);
         }
     }
