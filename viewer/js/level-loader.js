@@ -5,8 +5,8 @@
 
 export class LevelLoader {
     constructor() {
-        this.levelsPath = './data/levels';
-        this.yamlPath = './data/levels_list.yaml';
+        this.levelsPath = '../../data/levels';
+        this.yamlPath = '../../data/levels_list.yaml';
         this.collisionFiles = [];
     }
 
@@ -32,8 +32,10 @@ export class LevelLoader {
             // Load js-yaml library if not already loaded
             if (typeof jsyaml === 'undefined') {
                 await this.loadYAMLLibrary();
+                console.log('YAML library loaded successfully!');
             }
             
+            console.log('YAML path:', this.yamlPath);
             const response = await fetch(this.yamlPath);
             if (!response.ok) {
                 throw new Error(`Failed to load YAML: ${response.status}`);

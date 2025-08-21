@@ -68,15 +68,25 @@ export class FileHandler {
         reader.readAsText(file);
     }
     
-    parseCollisionFile(content) {
+    parseCollisionFile(content, version = 'US') {
         try {
+            // First, check if the file has version-specific content
+            const hasVersionDirectives = content.includes('#ifdef VERSION_JP') || content.includes('#ifndef VERSION_JP');
+            
+            let processedContent = content;
+            
+            if (hasVersionDirectives) {
+                console.log(`File contains version directives. Processing for ${version} version.`);
+                processedContent = this.preprocessVersionDirectives(content, version);
+            }
+            
             const vertices = [];
             const triangles = [];
             
             // Parse vertices first
             const vertexPattern = /COL_VERTEX\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/g;
             let match;
-            while ((match = vertexPattern.exec(content)) !== null) {
+            while ((match = vertexPattern.exec(processedContent)) !== null) {
                 vertices.push({
                     x: parseInt(match[1]),
                     y: parseInt(match[2]),
@@ -87,7 +97,7 @@ export class FileHandler {
             console.log(`Parsed ${vertices.length} vertices`);
             
             // Parse triangles with surface type tracking
-            const lines = content.split('\n');
+            const lines = processedContent.split('\n');
             let currentSurface = 'SURFACE_DEFAULT';
             
             for (const line of lines) {
@@ -125,10 +135,11 @@ export class FileHandler {
             // Create the data structure expected by the viewer
             const collisionData = {
                 vertices: vertices,
-                triangles: triangles
+                triangles: triangles,
+                version: version
             };
 
-            console.log('Collision data parsed successfully.');
+            console.log(`Collision data parsed successfully for ${version} version.`);
             
             return collisionData;
             
@@ -136,6 +147,74 @@ export class FileHandler {
             console.error('Error parsing collision file:', error);
             throw new Error('Failed to parse collision file: ' + error.message);
         }
+    }
+    
+    preprocessVersionDirectives(content, targetVersion) {
+        const lines = content.split('\n');
+        const processedLines = [];
+        let insideIf = false;
+        let ifCondition = '';
+        let skipBlock = false;
+        let ifDepth = 0;
+        
+        for (const line of lines) {
+            const trimmed = line.trim();
+            
+            // Handle #ifdef VERSION_JP
+            if (trimmed.startsWith('#ifdef VERSION_JP')) {
+                insideIf = true;
+                ifCondition = 'VERSION_JP';
+                skipBlock = (targetVersion !== 'JP');
+                ifDepth = 1;
+                continue;
+            }
+            
+            // Handle #ifndef VERSION_JP  
+            if (trimmed.startsWith('#ifndef VERSION_JP')) {
+                insideIf = true;
+                ifCondition = '!VERSION_JP';
+                skipBlock = (targetVersion === 'JP');
+                ifDepth = 1;
+                continue;
+            }
+            
+            // Handle nested #ifdef/#ifndef
+            if (insideIf && (trimmed.startsWith('#ifdef') || trimmed.startsWith('#ifndef'))) {
+                ifDepth++;
+                continue;
+            }
+            
+            // Handle #else
+            if (insideIf && trimmed.startsWith('#else') && ifDepth === 1) {
+                skipBlock = !skipBlock;
+                continue;
+            }
+            
+            // Handle #endif
+            if (insideIf && trimmed.startsWith('#endif')) {
+                ifDepth--;
+                if (ifDepth === 0) {
+                    insideIf = false;
+                    skipBlock = false;
+                    ifCondition = '';
+                }
+                continue;
+            }
+            
+            // Skip lines in excluded blocks
+            if (insideIf && skipBlock) {
+                continue;
+            }
+            
+            // Skip preprocessor directives that aren't version-related
+            if (trimmed.startsWith('#') && !trimmed.startsWith('#ifdef') && !trimmed.startsWith('#ifndef') && !trimmed.startsWith('#else') && !trimmed.startsWith('#endif')) {
+                continue;
+            }
+            
+            processedLines.push(line);
+        }
+        
+        return processedLines.join('\n');
     }
     
     showLoadError(message) {

@@ -151,6 +151,88 @@ export class UIControls {
         fileSelectContainer.appendChild(this.fileSelect);
         uiContainer.appendChild(fileSelectContainer);
         
+        // Version selector container
+        this.versionContainer = document.createElement('div');
+        this.versionContainer.style.cssText = 'margin: 10px 0; padding: 10px 0; border-top: 1px solid #555; display: none;';
+        
+        const versionLabel = document.createElement('label');
+        versionLabel.textContent = 'Version:';
+        versionLabel.style.cssText = 'display: block; margin-bottom: 8px; font-size: 13px;';
+        this.versionContainer.appendChild(versionLabel);
+        
+        this.versionToggle = document.createElement('div');
+        this.versionToggle.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        `;
+        
+        // Toggle switch
+        const toggleContainer = document.createElement('div');
+        toggleContainer.style.cssText = `
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #555;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        `;
+        
+        const toggleSlider = document.createElement('div');
+        toggleSlider.style.cssText = `
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #333;
+        `;
+        toggleSlider.textContent = 'US';
+        
+        this.selectedVersion = 'US';
+        
+        toggleContainer.onclick = () => {
+            if (this.selectedVersion === 'US') {
+                this.selectedVersion = 'JP';
+                toggleSlider.style.transform = 'translateX(30px)';
+                toggleSlider.textContent = 'JP';
+                toggleContainer.style.background = '#4CAF50';
+            } else {
+                this.selectedVersion = 'US';
+                toggleSlider.style.transform = 'translateX(0px)';
+                toggleSlider.textContent = 'US';
+                toggleContainer.style.background = '#555';
+            }
+            
+            // If a file is currently selected, reload it with the new version
+            if (this.fileSelect.value && this.fileSelect.value.startsWith('{')) {
+                console.log(`Switching to ${this.selectedVersion} version, reloading file...`);
+                this.loadLocalFile(this.fileSelect.value, true); // Pass true to preserve camera
+            }
+        };
+        
+        toggleContainer.appendChild(toggleSlider);
+        
+        const versionInfo = document.createElement('span');
+        versionInfo.style.cssText = 'font-size: 11px; color: #aaa;';
+        versionInfo.textContent = 'Toggle for JP/US versions';
+        
+        this.versionToggle.appendChild(toggleContainer);
+        this.versionToggle.appendChild(versionInfo);
+        this.versionContainer.appendChild(this.versionToggle);
+        
+        uiContainer.appendChild(this.versionContainer);
+        
         // Local data info
         const localInfo = document.createElement('div');
         localInfo.style.cssText = `
@@ -365,7 +447,7 @@ export class UIControls {
         this.fileSelect.appendChild(localOption);
     }
 
-    async loadLocalFile(fileInfoJson) {
+    async loadLocalFile(fileInfoJson, preserveCamera = false) {
         try {
             const fileInfo = JSON.parse(fileInfoJson);
             
@@ -377,13 +459,32 @@ export class UIControls {
             console.log('Loading file info:', fileInfo);
             const fileContent = await this.levelLoader.downloadCollisionFile(fileInfo);
             
-            // Parse the collision data
-            const triangleData = this.viewer.fileHandler.parseCollisionFile(fileContent);
+            // Check if file has version directives
+            const hasVersions = fileContent.includes('#ifdef VERSION_JP') || fileContent.includes('#ifndef VERSION_JP');
+            let selectedVersion = this.selectedVersion; // Use the toggle value
+            
+            if (hasVersions) {
+                // Show version selector if not already visible
+                if (this.versionContainer.style.display === 'none') {
+                    this.versionContainer.style.display = 'block';
+                    // Show a one-time notification about version selection
+                    this.showVersionNotification();
+                }
+                console.log(`Loading ${selectedVersion} version (file contains both versions)`);
+            } else {
+                // Hide version selector for files without versions
+                this.versionContainer.style.display = 'none';
+                selectedVersion = 'US'; // Default for single-version files
+            }
+            
+            // Parse the collision data with selected version
+            const triangleData = this.viewer.fileHandler.parseCollisionFile(fileContent, selectedVersion);
             console.log('Parsed triangle data:', triangleData);
 
             if (triangleData && (triangleData.triangles.length > 0 || triangleData.vertices.length > 0)) {
-                this.viewer.loadCollisionData(triangleData);
-                console.log(`Successfully loaded ${fileInfo.displayName}`);
+                this.viewer.loadCollisionData(triangleData, preserveCamera);
+                const versionText = hasVersions ? ` (${selectedVersion} Version)` : '';
+                console.log(`Successfully loaded ${fileInfo.displayName}${versionText}${preserveCamera ? ' (camera preserved)' : ''}`);
             } else {
                 throw new Error(`No collision data found in file. File might be empty or not contain valid collision data. Content length: ${fileContent ? fileContent.length : 0}`);
             }
@@ -398,5 +499,69 @@ export class UIControls {
             this.fileSelect.selectedIndex = 0;
             alert(`Failed to load collision file: ${error.message}`);
         }
+    }
+
+    showVersionNotification() {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: #2c2c2c;
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            border: 2px solid #4CAF50;
+        `;
+        
+        content.innerHTML = `
+            <h3 style="margin-top: 0; color: #4CAF50;">Version Selector Enabled</h3>
+            <p style="margin: 15px 0; line-height: 1.4;">
+                This collision file contains both <strong>Japanese</strong> and <strong>US</strong> versions.
+                Use the toggle switch above to select which version to load.
+            </p>
+            <p style="margin: 15px 0; font-size: 12px; color: #aaa;">
+                • <strong>US Version:</strong> Final international release<br>
+                • <strong>JP Version:</strong> Original Japanese release
+            </p>
+            <button style="
+                background: #4CAF50;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                margin-top: 10px;
+            ">Got it!</button>
+        `;
+        
+        const button = content.querySelector('button');
+        button.onclick = () => {
+            modal.remove();
+        };
+        
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 8000);
     }
 }

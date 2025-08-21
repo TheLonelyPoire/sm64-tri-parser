@@ -103,7 +103,15 @@ class CollisionViewer {
         this.animate();
     }
     
-    loadCollisionData(triangleData) {
+    loadCollisionData(triangleData, preserveCamera = false) {
+        // Save current camera state if preserving
+        let savedCameraPosition = null;
+        let savedCameraTarget = null;
+        if (preserveCamera && this.camera && this.controls) {
+            savedCameraPosition = this.camera.position.clone();
+            savedCameraTarget = this.controls.target.clone();
+        }
+        
         this.triangles = triangleData.triangles || [];
         this.vertices = triangleData.vertices || [];
         
@@ -112,15 +120,23 @@ class CollisionViewer {
         this.createMesh();
         this.uiControls.updateStats();
         
-        // Center camera on the mesh
+        // Handle camera positioning
         if (this.collisionMesh) {
-            const box = new THREE.Box3().setFromObject(this.collisionMesh);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-            
-            // Position camera with X=0, but maintain Y and Z offset based on mesh size
-            this.camera.position.set(0, center.y + size.y * 0.9 + 10, center.z + size.z * 1.1);
-            this.controls.target.copy(center);
+            if (preserveCamera && savedCameraPosition && savedCameraTarget) {
+                // Restore saved camera state
+                this.camera.position.copy(savedCameraPosition);
+                this.controls.target.copy(savedCameraTarget);
+                console.log('Camera position preserved during reload');
+            } else {
+                // Center camera on the mesh (default behavior)
+                const box = new THREE.Box3().setFromObject(this.collisionMesh);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                // Position camera with X=0, but maintain Y and Z offset based on mesh size
+                this.camera.position.set(0, center.y + size.y * 0.9 + 10, center.z + size.z * 1.1);
+                this.controls.target.copy(center);
+            }
         }
     }
     
