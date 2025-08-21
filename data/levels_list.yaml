@@ -645,6 +645,7 @@ levels:
       - id: "tumbling_platform_near"
         name: "Tumbling Platform (Near)"
         collision_file: "tumbling_platform_near/collision.inc.c"
+        script_model_name: "BITFS_TUMBLING_PLATFORM"
 
   bits:
     name: "Bowser in the Sky"
