@@ -81,6 +81,22 @@ export class UIControls {
         this.viewModeButton.onclick = () => this.viewer.toggleViewMode();
         uiContainer.appendChild(this.viewModeButton);
         
+        // Objects toggle button
+        this.objectsToggleButton = document.createElement('button');
+        this.objectsToggleButton.textContent = 'Hide Objects';
+        this.objectsToggleButton.style.cssText = `
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px 5px 0;
+            font-size: 13px;
+        `;
+        this.objectsToggleButton.onclick = () => this.viewer.toggleObjects();
+        uiContainer.appendChild(this.objectsToggleButton);
+        
         // Export button
         const exportButton = document.createElement('button');
         exportButton.textContent = 'Export OBJ';
@@ -418,6 +434,12 @@ export class UIControls {
         
         this.updateStats();
     }
+    
+    updateObjectsToggleButton() {
+        this.objectsToggleButton.textContent = this.viewer.objectsVisible 
+            ? 'Hide Objects' 
+            : 'Show Objects';
+    }
 
     async loadLocalCollisionFiles() {
         try {
@@ -564,8 +586,8 @@ export class UIControls {
                 Use the toggle switch above to select which version to load.
             </p>
             <p style="margin: 15px 0; font-size: 12px; color: #aaa;">
-                • <strong>US Version:</strong> Final international release<br>
-                • <strong>JP Version:</strong> Original Japanese release
+                • <strong>Non-JP Version:</strong>
+                • <strong>JP Version:</strong>
             </p>
             <button style="
                 background: #4CAF50;

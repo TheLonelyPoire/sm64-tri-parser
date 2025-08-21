@@ -16,6 +16,7 @@ class CollisionViewer {
         this.controls = null;
         this.collisionMesh = null;
         this.viewMode = 'surface';
+        this.objectsVisible = true; // Track objects visibility
         this.triangles = [];
         this.vertices = [];
         this.objects = [];
@@ -228,6 +229,9 @@ class CollisionViewer {
                         }
                     });
                     
+                    // Set initial visibility based on current setting
+                    objectMesh.visible = this.objectsVisible;
+                    
                     this.collisionMesh.add(objectMesh);
                     console.log(`Added ${object.name} at (${object.position.x}, ${object.position.y}, ${object.position.z})`);
                 }
@@ -247,6 +251,22 @@ class CollisionViewer {
         
         this.createMesh();
         this.uiControls.updateViewModeButton();
+    }
+    
+    toggleObjects() {
+        this.objectsVisible = !this.objectsVisible;
+        
+        // Update object visibility in the scene
+        if (this.collisionMesh) {
+            this.collisionMesh.traverse((child) => {
+                // Check if this is an object mesh (has object-specific userData)
+                if (child.isMesh && child.userData.objectTriangles) {
+                    child.visible = this.objectsVisible;
+                }
+            });
+        }
+        
+        this.uiControls.updateObjectsToggleButton();
     }
     
     exportToOBJ() {

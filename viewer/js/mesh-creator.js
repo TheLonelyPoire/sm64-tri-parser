@@ -12,6 +12,7 @@ export class MeshCreator {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
         this.hoveredTriangleIndex = -1;
+        this.hoveredMesh = null;
         this.activeMaterials = []; // Track materials for shader updates
         this.isOrbiting = false;
         this.mouseEventsSetup = false;
@@ -88,10 +89,14 @@ export class MeshCreator {
             // Get the global triangle index for shader-based highlighting
             const globalTriangleIndex = this.getGlobalTriangleIndex(mesh, faceIndex);
             
-            // Check if we're hovering over a different triangle
-            if (this.hoveredTriangleIndex !== globalTriangleIndex) {
+            // Check if we're hovering over a different triangle or different mesh
+            if (this.hoveredTriangleIndex !== globalTriangleIndex || this.hoveredMesh !== mesh) {
+                // Reset previous mesh
+                this.resetHover();
+                
                 this.hoveredTriangleIndex = globalTriangleIndex;
-                this.updateShaderHighlight(globalTriangleIndex);
+                this.hoveredMesh = mesh;
+                this.updateShaderHighlight(mesh, globalTriangleIndex);
             }
         } else {
             // Reset cursor when not hovering over triangles
@@ -112,17 +117,19 @@ export class MeshCreator {
         return -1;
     }
     
-    updateShaderHighlight(triangleIndex) {
-        // Update all active materials with the new hovered triangle
-        this.activeMaterials.forEach(material => {
-            this.shaderLoader.updateMaterialHover(material, triangleIndex);
-        });
+    updateShaderHighlight(mesh, triangleIndex) {
+        // Update only the specific mesh's material
+        if (mesh && mesh.material && mesh.material.uniforms && mesh.material.uniforms.hoveredTriangleIndex) {
+            mesh.material.uniforms.hoveredTriangleIndex.value = triangleIndex;
+        }
     }
     
     resetHover() {
-        if (this.hoveredTriangleIndex !== -1) {
+        if (this.hoveredMesh && this.hoveredTriangleIndex !== -1) {
+            // Reset the previously hovered mesh
+            this.updateShaderHighlight(this.hoveredMesh, -1);
             this.hoveredTriangleIndex = -1;
-            this.updateShaderHighlight(-1);
+            this.hoveredMesh = null;
         }
     }
     
